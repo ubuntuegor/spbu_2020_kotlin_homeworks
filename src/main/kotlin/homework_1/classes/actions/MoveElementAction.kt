@@ -1,4 +1,6 @@
-package homework_1.classes
+package homework_1.classes.actions
+
+import homework_1.classes.exceptions.InvalidMoveIndexException
 
 class MoveElementAction(val indexFrom: Int, val indexTo: Int) : Action {
     private fun moveListElement(list: MutableList<Int>, from: Int, to: Int) {

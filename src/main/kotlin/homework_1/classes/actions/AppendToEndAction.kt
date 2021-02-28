@@ -1,4 +1,4 @@
-package homework_1.classes
+package homework_1.classes.actions
 
 class AppendToEndAction(val value: Int) : Action {
     override val name: String

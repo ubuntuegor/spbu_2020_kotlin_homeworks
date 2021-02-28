@@ -1,4 +1,4 @@
-package homework_1.classes
+package homework_1.classes.actions
 
 class AppendToStartAction(val value: Int) : Action {
     override val name: String

@@ -1,10 +1,10 @@
 package homework_1
 
-import homework_1.classes.AppendToEndAction
-import homework_1.classes.AppendToStartAction
-import homework_1.classes.MoveElementAction
+import homework_1.classes.actions.AppendToEndAction
+import homework_1.classes.actions.AppendToStartAction
+import homework_1.classes.actions.MoveElementAction
 import homework_1.classes.PerformedCommandStorage
-import homework_1.classes.InvalidMoveIndexException
+import homework_1.classes.exceptions.InvalidMoveIndexException
 
 const val APPEND_TO_START_ACTION = 1
 const val APPEND_TO_END_ACTION = 2
@@ -88,8 +88,7 @@ fun programLoop(logStorage: PerformedCommandStorage): Boolean {
     println()
 
     return when (val choice = promptAction()) {
-        null -> false
-        0 -> false
+        null, 0 -> false
         UNDO_ACTION -> undoLastAction(logStorage)
         else -> doAction(logStorage, choice)
     }
