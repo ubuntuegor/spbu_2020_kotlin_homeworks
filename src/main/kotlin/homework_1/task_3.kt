@@ -88,7 +88,7 @@ fun programLoop(logStorage: PerformedCommandStorage): Boolean {
     println()
 
     return when (val choice = promptAction()) {
-        null, 0 -> false
+        null, EXIT_ACTION -> false
         UNDO_ACTION -> undoLastAction(logStorage)
         else -> doAction(logStorage, choice)
     }
