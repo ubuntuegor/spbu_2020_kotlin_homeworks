@@ -1,0 +1,7 @@
+formatting:
+  PackageName:
+    active: false
+
+naming:
+  PackageNaming:
+    active: false
