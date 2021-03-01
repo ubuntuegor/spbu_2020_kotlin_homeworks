@@ -13,7 +13,7 @@ fun findFactorialRecursive(n: Int): Int {
 
 fun main() {
     print("Enter an integer: ")
-    val n = readLine()?.toInt()
+    val n = readLine()?.toIntOrNull()
 
     if (n == null || n < 1) {
         println("Failed to read input")
