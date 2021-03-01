@@ -1,4 +1,4 @@
-package homework_1
+package homework1
 
 fun countOccurrences(needle: String, haystack: String): Int {
     var occurrences = 0
