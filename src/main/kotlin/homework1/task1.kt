@@ -1,4 +1,4 @@
-package homework_1
+package homework1
 
 fun findFactorialIterative(n: Int): Int {
     var result = 1
