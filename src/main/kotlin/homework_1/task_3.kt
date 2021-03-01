@@ -4,6 +4,8 @@ import homework_1.classes.actions.AppendToEndAction
 import homework_1.classes.actions.AppendToStartAction
 import homework_1.classes.actions.MoveElementAction
 import homework_1.classes.PerformedCommandStorage
+import common.exceptions.InvalidInputException
+import common.promptInt
 import homework_1.classes.exceptions.InvalidMoveIndexException
 
 const val APPEND_TO_START_ACTION = 1
@@ -25,28 +27,23 @@ fun printActions(logStorage: PerformedCommandStorage) {
     println("  $EXIT_ACTION. Exit")
 }
 
-fun promptAction(): Int? {
-    print("Choose an action (0-4): ")
-    return readLine()?.toInt()
+fun promptAction(): Int {
+    return promptInt("Choose an action (0-4): ")
 }
 
 fun promptForAppendToStartAction(): AppendToStartAction {
-    print("Value to append to start: ")
-    val value = readLine()!!.toInt()
+    val value = promptInt("Value to append to start: ")
     return AppendToStartAction(value)
 }
 
 fun promptForAppendToEndAction(): AppendToEndAction {
-    print("Value to append to end: ")
-    val value = readLine()!!.toInt()
+    val value = promptInt("Value to append to end: ")
     return AppendToEndAction(value)
 }
 
 fun promptForMoveElementAction(): MoveElementAction {
-    print("Index to move from: ")
-    val indexFrom = readLine()!!.toInt()
-    print("Index to move to: ")
-    val indexTo = readLine()!!.toInt()
+    val indexFrom = promptInt("Index to move from: ")
+    val indexTo = promptInt("Index to move to: ")
     return MoveElementAction(indexFrom, indexTo)
 }
 
@@ -87,10 +84,15 @@ fun programLoop(logStorage: PerformedCommandStorage): Boolean {
     printActions(logStorage)
     println()
 
-    return when (val choice = promptAction()) {
-        null, EXIT_ACTION -> false
-        UNDO_ACTION -> undoLastAction(logStorage)
-        else -> doAction(logStorage, choice)
+    return try {
+        when (val choice = promptAction()) {
+            EXIT_ACTION -> false
+            UNDO_ACTION -> undoLastAction(logStorage)
+            else -> doAction(logStorage, choice)
+        }
+    } catch (e: InvalidInputException) {
+        println("Invalid input")
+        false
     }
 }
 
