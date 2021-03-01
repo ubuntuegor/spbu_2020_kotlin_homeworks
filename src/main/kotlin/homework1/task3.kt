@@ -1,12 +1,12 @@
-package homework_1
+package homework1
 
-import homework_1.classes.actions.AppendToEndAction
-import homework_1.classes.actions.AppendToStartAction
-import homework_1.classes.actions.MoveElementAction
-import homework_1.classes.PerformedCommandStorage
+import homework1.classes.actions.AppendToEndAction
+import homework1.classes.actions.AppendToStartAction
+import homework1.classes.actions.MoveElementAction
+import homework1.classes.PerformedCommandStorage
 import common.exceptions.InvalidInputException
 import common.promptInt
-import homework_1.classes.exceptions.InvalidMoveIndexException
+import homework1.classes.exceptions.InvalidMoveIndexException
 
 const val APPEND_TO_START_ACTION = 1
 const val APPEND_TO_END_ACTION = 2

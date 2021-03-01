@@ -1,3 +1,3 @@
-package homework_1.classes.exceptions
+package homework1.classes.exceptions
 
 class InvalidMoveIndexException : Exception()

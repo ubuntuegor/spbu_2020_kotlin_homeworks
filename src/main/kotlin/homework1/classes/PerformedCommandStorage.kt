@@ -1,6 +1,6 @@
-package homework_1.classes
+package homework1.classes
 
-import homework_1.classes.actions.Action
+import homework1.classes.actions.Action
 
 class PerformedCommandStorage {
     private val _performedActions = mutableListOf<Action>()

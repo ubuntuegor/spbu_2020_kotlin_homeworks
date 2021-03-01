@@ -1,4 +1,4 @@
-package homework_1.classes.actions
+package homework1.classes.actions
 
 interface Action {
     val name: String
