@@ -1,22 +1,21 @@
-package homework1.classes.actions
+package homework1.actions
 
-import homework1.classes.exceptions.InvalidMoveIndexException
-
-class MoveElementAction(val indexFrom: Int, val indexTo: Int) : Action {
-    private fun moveListElement(list: MutableList<Int>, from: Int, to: Int) {
-        if (from !in list.indices || to !in list.indices) throw InvalidMoveIndexException()
-        val temp = list.removeAt(from)
-        list.add(to, temp)
+class MoveElementAction(private val indexFrom: Int, private val indexTo: Int) : Action {
+    private fun MutableList<Int>.moveElement(from: Int, to: Int) {
+        if (from !in this.indices) throw IllegalArgumentException("Can't move: element $from doesn't exist")
+        if (to !in this.indices) throw IllegalArgumentException("Can't move: position $to is not available")
+        val temp = this.removeAt(from)
+        this.add(to, temp)
     }
 
     override val name: String
         get() = "Move element from index $indexFrom to $indexTo"
 
     override fun perform(list: MutableList<Int>) {
-        moveListElement(list, indexFrom, indexTo)
+        list.moveElement(indexFrom, indexTo)
     }
 
     override fun undo(list: MutableList<Int>) {
-        moveListElement(list, indexTo, indexFrom)
+        list.moveElement(indexTo, indexFrom)
     }
 }

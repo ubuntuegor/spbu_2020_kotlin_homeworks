@@ -1,6 +1,6 @@
-package homework1.classes.actions
+package homework1.actions
 
-class AppendToStartAction(val value: Int) : Action {
+class AppendToStartAction(private val value: Int) : Action {
     override val name: String
         get() = "Append $value to start"
 
