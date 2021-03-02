@@ -1,5 +1,7 @@
 package homework1
 
+import common.error.die
+
 fun findFactorialIterative(n: Int): Int {
     var result = 1
     for (i in 1..n) result *= i
@@ -15,8 +17,8 @@ fun main() {
     print("Enter an integer: ")
     val n = readLine()?.toIntOrNull()
 
-    if (n == null) error("Failed to read number from input")
-    else if (n < 0) error("Can't calculate factorial of a negative")
+    if (n == null) die("Failed to read number from input")
+    else if (n < 0) die("Can't calculate factorial of a negative")
 
     println("Factorial (iterative) of $n: ${findFactorialIterative(n)}")
     println("Factorial (recursive) of $n: ${findFactorialRecursive(n)}")
