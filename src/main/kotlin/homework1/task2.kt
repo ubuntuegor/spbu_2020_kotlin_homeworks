@@ -1,26 +1,24 @@
 package homework1
 
-fun countOccurrences(needle: String, haystack: String): Int {
+import common.error.die
+
+fun String.countOccurrences(needle: String): Int {
+    if (needle == "") return this.length + 1
+
     var occurrences = 0
-    var index = haystack.indexOf(needle)
+    var index = this.indexOf(needle)
     while (index != -1) {
-        index = haystack.indexOf(needle, index + 1)
         occurrences++
+        index = this.indexOf(needle, index + 1)
     }
     return occurrences
 }
 
 fun main() {
-    print("Enter string to find: ")
-    val needle = readLine()
     print("Enter string to search in: ")
-    val haystack = readLine()
+    val haystack = readLine() ?: die("Failed to read input")
+    print("Enter string to find: ")
+    val needle = readLine() ?: die("Failed to read input")
 
-    if (needle == null || haystack == null) {
-        println("Failed to read input")
-        return
-    }
-
-    val result = countOccurrences(needle, haystack)
-    println("Found $result occurrences")
+    println("Found ${haystack.countOccurrences(needle)} occurrences")
 }
