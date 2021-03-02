@@ -1,9 +1,9 @@
 package homework1
 
-import common.error.die
+import common.error.exitWithError
 
 fun String.countOccurrences(needle: String): Int {
-    if (needle == "") return this.length + 1
+    if (needle == "") throw IllegalArgumentException("Can't count occurrences of an empty string")
 
     var occurrences = 0
     var index = this.indexOf(needle)
@@ -16,9 +16,13 @@ fun String.countOccurrences(needle: String): Int {
 
 fun main() {
     print("Enter string to search in: ")
-    val haystack = readLine() ?: die("Failed to read input")
+    val haystack = readLine() ?: exitWithError("Failed to read input")
     print("Enter string to find: ")
-    val needle = readLine() ?: die("Failed to read input")
+    val needle = readLine() ?: exitWithError("Failed to read input")
 
-    println("Found ${haystack.countOccurrences(needle)} occurrences")
+    try {
+        println("Found ${haystack.countOccurrences(needle)} occurrences")
+    } catch (e: IllegalArgumentException) {
+        println("ERROR: ${e.message}")
+    }
 }
