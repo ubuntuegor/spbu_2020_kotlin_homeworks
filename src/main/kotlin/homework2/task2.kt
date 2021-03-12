@@ -1,6 +1,6 @@
 package homework2
 
-const val TEST_DATA = "1, 2, 3, 4, 1, 4, 5, 3"
+import common.io.promptIntArray
 
 fun <T> List<T>.removeDuplicates(): List<T> {
     val lastIndices = this.zip(this.indices).toMap()
@@ -8,7 +8,8 @@ fun <T> List<T>.removeDuplicates(): List<T> {
 }
 
 fun main() {
-    val result = TEST_DATA.split(", ")
+    val result = promptIntArray("Enter some integers, each on new line. Leave a line empty to stop:")
         .removeDuplicates()
+    println("I have left only the last occurrence of each number:")
     println(result)
 }
