@@ -3,6 +3,9 @@ package homework1.actions
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * This action moves an element within a list.
+ */
 @Serializable
 @SerialName("moveElement")
 class MoveElementAction(private val indexFrom: Int, private val indexTo: Int) : Action {

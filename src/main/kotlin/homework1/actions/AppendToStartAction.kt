@@ -3,6 +3,9 @@ package homework1.actions
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * This action appends to the start of the list.
+ */
 @Serializable
 @SerialName("appendToStart")
 class AppendToStartAction(private val value: Int) : Action {
