@@ -4,6 +4,7 @@ import homework1.actions.AppendToEndAction
 import homework1.actions.AppendToStartAction
 import homework1.actions.MoveElementAction
 import common.io.promptInt
+import java.io.FileNotFoundException
 
 fun main() {
     Task3.run()
@@ -14,7 +15,11 @@ object Task3 {
     private const val APPEND_TO_END_ACTION = 2
     private const val MOVE_ELEMENT_ACTION = 3
     private const val UNDO_ACTION = 4
+    private const val JSON_LOAD = 5
+    private const val JSON_SAVE = 6
     private const val EXIT_ACTION = 0
+
+    private const val JSON_STORAGE = "savedActions.json"
 
     private val logStorage = PerformedCommandStorage()
 
@@ -24,9 +29,11 @@ object Task3 {
   $APPEND_TO_END_ACTION. Append a value to the end of the list
   $MOVE_ELEMENT_ACTION. Move an element within the list
   $UNDO_ACTION. Undo last action (${logStorage.lastActionName})
+  $JSON_LOAD. Load actions from saved JSON.
+  $JSON_SAVE. Save actions to JSON.
   $EXIT_ACTION. Exit"""
 
-    private fun promptAction() = promptInt("Choose an action (0-4): ")
+    private fun promptAction() = promptInt("Choose an action (0-6): ")
 
     private fun promptForAppendToStartAction() = AppendToStartAction(promptInt("Value to append to start: "))
 
@@ -57,10 +64,14 @@ object Task3 {
             when (val choice = promptAction()) {
                 EXIT_ACTION -> return false
                 UNDO_ACTION -> logStorage.undoLastAction()
+                JSON_LOAD -> logStorage.loadFromJson(JSON_STORAGE)
+                JSON_SAVE -> logStorage.saveToJson(JSON_STORAGE)
                 else -> logStorage.performActionByNumber(choice)
             }
         } catch (e: NoSuchElementException) {
             println("ERROR: No actions to undo")
+        } catch (e: FileNotFoundException) {
+            println("ERROR: JSON storage not found")
         } catch (e: NumberFormatException) {
             println("ERROR: ${e.message}")
         } catch (e: IllegalArgumentException) {

@@ -1,5 +1,10 @@
 package homework1.actions
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+@SerialName("appendToStart")
 class AppendToStartAction(private val value: Int) : Action {
     override val name: String
         get() = "Append $value to start"

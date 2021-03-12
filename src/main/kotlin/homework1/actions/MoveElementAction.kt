@@ -1,5 +1,10 @@
 package homework1.actions
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+@SerialName("moveElement")
 class MoveElementAction(private val indexFrom: Int, private val indexTo: Int) : Action {
     private fun MutableList<Int>.moveElement(from: Int, to: Int) {
         if (from !in this.indices) throw IllegalArgumentException("Can't move: element $from doesn't exist")
