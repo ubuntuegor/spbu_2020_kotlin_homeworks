@@ -1,4 +1,4 @@
-name: simple CI
+name: Analyze, test, build
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,3 +20,17 @@ jobs:
 
       - name: Run detekt
         run: ./gradlew detekt
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run build
+        run: .\gradlew build
+
+      - name: Run tests
+        run: .\gradlew test
+
+      - name: Run detekt
+        run: .\gradlew detekt
