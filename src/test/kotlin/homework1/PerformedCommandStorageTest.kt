@@ -9,9 +9,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.File
 
 internal class PerformedCommandStorageTest {
+    private val logStorage = PerformedCommandStorage()
+
     @Test
     fun performActionAndUndo() {
-        val logStorage = PerformedCommandStorage()
         logStorage.performAction(AppendToStartAction(1))
         logStorage.performAction(AppendToStartAction(2))
         logStorage.performAction(AppendToStartAction(3))
@@ -27,14 +28,12 @@ internal class PerformedCommandStorageTest {
 
     @Test
     fun loadFromJson() {
-        val logStorage = PerformedCommandStorage()
         logStorage.loadFromJson(javaClass.getResource("savedActionsLoad.json").path)
         assertEquals(listOf(3, 34, 4, 1, 1), logStorage.storage)
     }
 
     @Test
     fun saveToJson() {
-        val logStorage = PerformedCommandStorage()
         logStorage.saveToJson("temp.json")
         assertEquals("[]", File("temp.json").readText())
         logStorage.performAction(AppendToStartAction(1))
