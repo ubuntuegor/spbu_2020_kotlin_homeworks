@@ -6,7 +6,9 @@ import homework1.actions.MoveElementAction
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.nio.file.Path
 
 internal class PerformedCommandStorageTest {
     private val logStorage = PerformedCommandStorage()
@@ -33,14 +35,14 @@ internal class PerformedCommandStorageTest {
     }
 
     @Test
-    fun saveToJson() {
-        logStorage.saveToJson("temp.json")
-        assertEquals("[]", File("temp.json").readText())
+    fun saveToJson(@TempDir tempDir: Path) {
+        val tempFile = tempDir.resolve("savedActionsSave.json").toString()
+        logStorage.saveToJson(tempFile)
+        assertEquals("[]", File(tempFile).readText())
         logStorage.performAction(AppendToStartAction(1))
         logStorage.performAction(AppendToStartAction(2))
         logStorage.performAction(AppendToEndAction(5))
-        logStorage.saveToJson("temp.json")
-        assertEquals(javaClass.getResource("savedActionsSave.json").readText(), File("temp.json").readText())
-        File("temp.json").delete()
+        logStorage.saveToJson(tempFile)
+        assertEquals(javaClass.getResource("savedActionsSave.json").readText(), File(tempFile).readText())
     }
 }
