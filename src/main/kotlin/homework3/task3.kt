@@ -14,7 +14,7 @@ fun getConfigFromYaml(yamlText: String) = Yaml.default.decodeFromString<TestGene
 
 fun main(args: Array<String>) {
     if (args.size != 2) {
-        exitWithError("Please specify yaml config as the first parameter and output directory as the second")
+        exitWithError("Please specify yaml config as the first parameter and output directory as the second.")
     }
 
     val yamlFilename = args[0]
