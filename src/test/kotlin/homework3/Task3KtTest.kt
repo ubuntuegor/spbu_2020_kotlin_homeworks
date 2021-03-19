@@ -14,29 +14,14 @@ internal class Task3KtTest {
                     "homework1",
                     "Action",
                     listOf("perform", "undo").map { TestGeneratorConfigFunction(it) }
-                ),
-                """
-                   |package-name: homework1
-                   |class-name: Action
-                   |functions:
-                   |  - name: perform
-                   |  - name: undo
-                """.trimMargin()
+                ), Task3KtTest::class.java.getResource("yamlConfigs/test1.yaml").readText()
             ),
             Arguments.of(
                 TestGeneratorConfig(
                     "common.io",
                     "Input",
                     listOf("read", "parseInt", "parseFloat").map { TestGeneratorConfigFunction(it) }
-                ),
-                """
-                   |package-name: common.io
-                   |class-name: Input
-                   |functions:
-                   |  - name: "read"
-                   |  - name: "parseInt"
-                   |  - name: "parseFloat"
-                """.trimMargin()
+                ), Task3KtTest::class.java.getResource("yamlConfigs/test2.yaml").readText()
             )
         )
     }

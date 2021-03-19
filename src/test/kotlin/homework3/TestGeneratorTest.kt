@@ -8,24 +8,9 @@ import org.junit.jupiter.params.provider.MethodSource
 internal class TestGeneratorTest {
     companion object {
         @JvmStatic
-        fun yamlTestData(): List<Arguments> = listOf(
+        fun codeTestData(): List<Arguments> = listOf(
             Arguments.of(
-                """
-                   |package homework1
-                   |
-                   |import org.junit.jupiter.api.Test
-                   |
-                   |internal class ActionTest {
-                   |  @Test
-                   |  fun perform() {
-                   |  }
-                   |
-                   |  @Test
-                   |  fun undo() {
-                   |  }
-                   |}
-                   |
-                """.trimMargin(),
+                TestGeneratorTest::class.java.getResource("generatedTests/test1.kt").readText(),
                 TestGeneratorConfig(
                     "homework1",
                     "Action",
@@ -33,26 +18,7 @@ internal class TestGeneratorTest {
                 )
             ),
             Arguments.of(
-                """
-                   |package common.io
-                   |
-                   |import org.junit.jupiter.api.Test
-                   |
-                   |internal class InputTest {
-                   |  @Test
-                   |  fun read() {
-                   |  }
-                   |
-                   |  @Test
-                   |  fun parseInt() {
-                   |  }
-                   |
-                   |  @Test
-                   |  fun parseFloat() {
-                   |  }
-                   |}
-                   |
-                """.trimMargin(),
+                TestGeneratorTest::class.java.getResource("generatedTests/test2.kt").readText(),
                 TestGeneratorConfig(
                     "common.io",
                     "Input",
@@ -62,7 +28,7 @@ internal class TestGeneratorTest {
         )
     }
 
-    @MethodSource("yamlTestData")
+    @MethodSource("codeTestData")
     @ParameterizedTest(name = "test {index}, {1}")
     fun getFile(expected: String, config: TestGeneratorConfig) {
         assertEquals(expected, TestGenerator(config).file.toString())
