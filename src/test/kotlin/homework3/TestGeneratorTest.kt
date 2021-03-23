@@ -10,7 +10,7 @@ internal class TestGeneratorTest {
         @JvmStatic
         fun codeTestData(): List<Arguments> = listOf(
             Arguments.of(
-                TestGeneratorTest::class.java.getResource("generatedTests/test1.kt").readText().replace("\r\n", "\n"),
+                TestGeneratorTest::class.java.getResource("generatedTests/test1.kt").readText(),
                 TestGeneratorConfig(
                     "homework1",
                     "Action",
@@ -18,7 +18,7 @@ internal class TestGeneratorTest {
                 )
             ),
             Arguments.of(
-                TestGeneratorTest::class.java.getResource("generatedTests/test2.kt").readText().replace("\r\n", "\n"),
+                TestGeneratorTest::class.java.getResource("generatedTests/test2.kt").readText(),
                 TestGeneratorConfig(
                     "common.io",
                     "Input",

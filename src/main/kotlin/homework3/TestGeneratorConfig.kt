@@ -13,9 +13,9 @@ import kotlinx.serialization.decodeFromString
  */
 @Serializable
 data class TestGeneratorConfig(
-    @SerialName("package-name")
+    @SerialName("package name")
     val packageName: String,
-    @SerialName("class-name")
+    @SerialName("class name")
     val className: String,
     val functions: List<TestGeneratorConfigFunction>
 ) {

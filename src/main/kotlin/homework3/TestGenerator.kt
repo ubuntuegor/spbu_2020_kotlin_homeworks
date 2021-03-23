@@ -13,10 +13,9 @@ import com.squareup.kotlinpoet.ClassName
  */
 class TestGenerator(private val config: TestGeneratorConfig) {
     private val name = "${config.className}Test"
-    private val testAnnotation = ClassName("org.junit.jupiter.api", "Test")
 
     private fun createTestFunction(function: TestGeneratorConfigFunction) = FunSpec.builder(function.name)
-        .addAnnotation(testAnnotation)
+        .addAnnotation(ClassName("org.junit.jupiter.api", "Test"))
         .build()
 
     private fun createTestClass(functions: List<TestGeneratorConfigFunction>) =
