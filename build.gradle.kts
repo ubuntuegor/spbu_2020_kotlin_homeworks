@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.net.URL
 
 plugins {
@@ -21,7 +22,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    testImplementation(kotlin("test-junit"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
 }
 
@@ -32,7 +33,17 @@ detekt {
 }
 
 tasks.test {
-    useJUnit()
+    useJUnitPlatform()
+
+    testLogging {
+        events(
+            TestLogEvent.STANDARD_ERROR,
+            TestLogEvent.STARTED,
+            TestLogEvent.PASSED,
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED
+        )
+    }
 }
 
 tasks.withType<KotlinCompile>() {
@@ -52,8 +63,12 @@ tasks.withType<DokkaTask>().configureEach {
             moduleName.set("SPbU Kotlin Homeworks")
             sourceLink {
                 localDirectory.set(file("src/main/kotlin"))
-                remoteUrl.set(URL("https://github.com/ubuntuegor/spbu_2020_kotlin_homeworks/" +
-                        "tree/master/src/main/kotlin"))
+                remoteUrl.set(
+                    URL(
+                        "https://github.com/ubuntuegor/spbu_2020_kotlin_homeworks/" +
+                                "tree/master/src/main/kotlin"
+                    )
+                )
                 remoteLineSuffix.set("#L")
             }
         }
