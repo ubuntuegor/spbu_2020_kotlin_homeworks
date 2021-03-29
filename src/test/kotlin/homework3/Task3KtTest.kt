@@ -12,36 +12,22 @@ internal class Task3KtTest {
         @JvmStatic
         fun validationData(): List<Arguments> = listOf(
             Arguments.of(
-                "homework1/ActionTest.kt",
-                TestGeneratorConfigTest::class.java.getResource("generatedTests/test1.kt").readText(),
-                TestGeneratorConfigTest::class.java.getResource("yamlConfigs/test1.yaml").path
+                "test1", "abc/def/UserClassTest.kt"
             ),
             Arguments.of(
-                "common/io/InputTest.kt",
-                TestGeneratorConfigTest::class.java.getResource("generatedTests/test2.kt").readText(),
-                TestGeneratorConfigTest::class.java.getResource("yamlConfigs/test2.yaml").path
+                "test2", "ru/spbu/homeworks/CheckHomeworkTest.kt"
             ),
             Arguments.of(
-                "abc/def/UserClassTest.kt",
-                TestGeneratorConfigTest::class.java.getResource("validation/test1/expected.kt").readText(),
-                TestGeneratorConfigTest::class.java.getResource("validation/test1/config.yaml").path
-            ),
-            Arguments.of(
-                "ru/spbu/homeworks/CheckHomeworkTest.kt",
-                TestGeneratorConfigTest::class.java.getResource("validation/test2/expected.kt").readText(),
-                TestGeneratorConfigTest::class.java.getResource("validation/test2/config.yaml").path
-            ),
-            Arguments.of(
-                "never/gonna/GiveYouUpTest.kt",
-                TestGeneratorConfigTest::class.java.getResource("validation/test3/expected.kt").readText(),
-                TestGeneratorConfigTest::class.java.getResource("validation/test3/config.yaml").path
+                "test3", "never/gonna/GiveYouUpTest.kt"
             ),
         )
     }
 
     @MethodSource("validationData")
-    @ParameterizedTest(name = "test {index}, {2}")
-    fun generateTestFile(expectedPath: String, expectedCode: String, yamlPath: String, @TempDir tempDir: Path) {
+    @ParameterizedTest(name = "generateTestFile - {0}")
+    fun generateTestFile(testName: String, expectedPath: String, @TempDir tempDir: Path) {
+        val yamlPath = javaClass.getResource("validation/$testName/config.yaml").path
+        val expectedCode = javaClass.getResource("validation/$testName/expected.kt").readText()
         generateTestFile(yamlPath, tempDir.toString())
         assertEquals(expectedCode, tempDir.resolve(expectedPath).toFile().readText())
     }

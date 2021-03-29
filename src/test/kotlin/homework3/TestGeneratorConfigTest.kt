@@ -10,25 +10,28 @@ internal class TestGeneratorConfigTest {
         @JvmStatic
         fun yamlConfigData(): List<Arguments> = listOf(
             Arguments.of(
+                "test1",
                 TestGeneratorConfig(
                     "homework1",
                     "Action",
                     listOf("perform", "undo").map { TestGeneratorConfigFunction(it) }
-                ), TestGeneratorConfigTest::class.java.getResource("yamlConfigs/test1.yaml").readText()
+                )
             ),
             Arguments.of(
+                "test2",
                 TestGeneratorConfig(
                     "common.io",
                     "Input",
                     listOf("read", "parseInt", "parseFloat").map { TestGeneratorConfigFunction(it) }
-                ), TestGeneratorConfigTest::class.java.getResource("yamlConfigs/test2.yaml").readText()
+                )
             )
         )
     }
 
     @MethodSource("yamlConfigData")
-    @ParameterizedTest(name = "test {index}, {1}")
-    fun getConfigFromYaml(expected: TestGeneratorConfig, yamlText: String) {
+    @ParameterizedTest(name = "getConfigFromYaml - {0}")
+    fun getConfigFromYaml(testName: String, expected: TestGeneratorConfig) {
+        val yamlText = javaClass.getResource("yamlConfigs/$testName.yaml").readText()
         assertEquals(expected, TestGeneratorConfig.fromYaml(yamlText))
     }
 }

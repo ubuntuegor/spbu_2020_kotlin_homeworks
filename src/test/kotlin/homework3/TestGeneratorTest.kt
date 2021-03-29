@@ -10,7 +10,7 @@ internal class TestGeneratorTest {
         @JvmStatic
         fun codeTestData(): List<Arguments> = listOf(
             Arguments.of(
-                TestGeneratorTest::class.java.getResource("generatedTests/test1.kt").readText(),
+                "test1",
                 TestGeneratorConfig(
                     "homework1",
                     "Action",
@@ -18,7 +18,7 @@ internal class TestGeneratorTest {
                 )
             ),
             Arguments.of(
-                TestGeneratorTest::class.java.getResource("generatedTests/test2.kt").readText(),
+                "test2",
                 TestGeneratorConfig(
                     "common.io",
                     "Input",
@@ -29,8 +29,11 @@ internal class TestGeneratorTest {
     }
 
     @MethodSource("codeTestData")
-    @ParameterizedTest(name = "test {index}, {1}")
-    fun getFile(expected: String, config: TestGeneratorConfig) {
-        assertEquals(expected, TestGenerator(config).file.toString())
+    @ParameterizedTest(name = "getFile - {0}")
+    fun getFile(testName: String, config: TestGeneratorConfig) {
+        assertEquals(
+            javaClass.getResource("generatedTests/$testName.kt").readText(),
+            TestGenerator(config).file.toString()
+        )
     }
 }
