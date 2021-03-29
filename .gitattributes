@@ -1,0 +1,2 @@
+# Make sure test files are the same across platforms
+src/test/resources/**   binary

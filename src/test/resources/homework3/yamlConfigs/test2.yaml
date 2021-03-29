@@ -1,0 +1,6 @@
+package name: common.io
+class name: Input
+functions:
+  - name: "read"
+  - name: "parseInt"
+  - name: "parseFloat"

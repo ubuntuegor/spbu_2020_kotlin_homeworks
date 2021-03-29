@@ -1,0 +1,5 @@
+package name: homework1
+class name: Action
+functions:
+  - name: perform
+  - name: undo

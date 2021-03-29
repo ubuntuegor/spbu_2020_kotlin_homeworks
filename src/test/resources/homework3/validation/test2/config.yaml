@@ -1,0 +1,5 @@
+package name: ru.spbu.homeworks
+class name: CheckHomework
+functions:
+  - name: accept
+  - name: requestChanges
