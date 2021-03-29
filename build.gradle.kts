@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.net.URL
 
 plugins {
