@@ -70,15 +70,6 @@ class PerformedCommandStorage<T> {
         private val format = Json { serializersModule = module }
 
         /**
-         * Saves all actions into a file.
-         * @param filename Path to the JSON file.
-         */
-        fun PerformedCommandStorage<Int>.saveToJson(filename: String) {
-            val text = format.encodeToString(this.performedActions)
-            File(filename).writeText(text)
-        }
-
-        /**
          * Performs actions from a given file.
          * @param filename Path to the JSON file.
          */
@@ -86,6 +77,15 @@ class PerformedCommandStorage<T> {
             val text = File(filename).readText()
             val actions = format.decodeFromString<MutableList<Action<Int>>>(text)
             actions.forEach { this.performAction(it) }
+        }
+
+        /**
+         * Saves all actions into a file.
+         * @param filename Path to the JSON file.
+         */
+        fun PerformedCommandStorage<Int>.saveToJson(filename: String) {
+            val text = format.encodeToString(this.performedActions)
+            File(filename).writeText(text)
         }
     }
 }
