@@ -3,6 +3,9 @@ package homework1
 import common.io.promptInt
 import homework1.PerformedCommandStorage.IntJson.loadFromJson
 import homework1.PerformedCommandStorage.IntJson.saveToJson
+import homework1.actions.AppendToEndAction
+import homework1.actions.AppendToStartAction
+import homework1.actions.MoveElementAction
 import java.io.FileNotFoundException
 
 fun main() {

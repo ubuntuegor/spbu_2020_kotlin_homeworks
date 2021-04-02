@@ -1,15 +1,21 @@
 package homework1
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.io.File
+import homework1.actions.Action
+import homework1.actions.AppendToStartAction
+import homework1.actions.AppendToEndAction
+import homework1.actions.MoveElementAction
+import homework1.serialization.IntAsObjectSerializer
+import kotlinx.serialization.PolymorphicSerializer
 
 /**
- * Stores an ordered list of integers along with the history of changes.
+ * Stores an ordered list of T along with the history of changes.
  */
 class PerformedCommandStorage<T> {
     private val performedActions = mutableListOf<Action<T>>()
@@ -52,7 +58,12 @@ class PerformedCommandStorage<T> {
     companion object IntJson {
         private val module = SerializersModule {
             polymorphic(Any::class) {
-                subclass(Int::class)
+                subclass(IntAsObjectSerializer)
+            }
+            polymorphic(Action::class) {
+                subclass(AppendToStartAction.serializer(PolymorphicSerializer(Any::class)))
+                subclass(AppendToEndAction.serializer(PolymorphicSerializer(Any::class)))
+                subclass(MoveElementAction.serializer(PolymorphicSerializer(Any::class)))
             }
         }
 
