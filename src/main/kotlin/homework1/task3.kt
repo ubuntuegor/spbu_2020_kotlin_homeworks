@@ -1,9 +1,8 @@
 package homework1
 
-import homework1.actions.AppendToEndAction
-import homework1.actions.AppendToStartAction
-import homework1.actions.MoveElementAction
 import common.io.promptInt
+import homework1.PerformedCommandStorage.IntJson.loadFromJson
+import homework1.PerformedCommandStorage.IntJson.saveToJson
 import java.io.FileNotFoundException
 
 fun main() {
@@ -21,7 +20,7 @@ object Task3 {
 
     private const val JSON_STORAGE = "savedActions.json"
 
-    private val logStorage = PerformedCommandStorage()
+    private val logStorage = PerformedCommandStorage<Int>()
 
     private val userActions: String
         get() = """Available actions:
@@ -40,9 +39,9 @@ object Task3 {
     private fun promptForAppendToEndAction() = AppendToEndAction(promptInt("Value to append to end: "))
 
     private fun promptForMoveElementAction() =
-        MoveElementAction(promptInt("Index to move from: "), promptInt("Index to move to: "))
+        MoveElementAction<Int>(promptInt("Index to move from: "), promptInt("Index to move to: "))
 
-    private fun PerformedCommandStorage.performActionByNumber(choice: Int) {
+    private fun PerformedCommandStorage<Int>.performActionByNumber(choice: Int) {
         val action = when (choice) {
             APPEND_TO_START_ACTION -> promptForAppendToStartAction()
             APPEND_TO_END_ACTION -> promptForAppendToEndAction()
@@ -73,8 +72,6 @@ object Task3 {
         } catch (e: FileNotFoundException) {
             println("ERROR: JSON storage not found")
         } catch (e: NumberFormatException) {
-            println("ERROR: ${e.message}")
-        } catch (e: IllegalArgumentException) {
             println("ERROR: ${e.message}")
         }
 
