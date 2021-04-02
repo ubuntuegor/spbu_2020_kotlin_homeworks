@@ -1,4 +1,4 @@
-// Source: https://github.com/Kotlin/kotlinx.serialization/issues/1252#issuecomment-747054849
+// Source: https://github.com/Kotlin/kotlinx.serialization/issues/1252#issuecomment-747048539
 package homework1.serialization
 
 import kotlinx.serialization.Serializable
