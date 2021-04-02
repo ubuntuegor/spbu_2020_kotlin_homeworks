@@ -76,6 +76,8 @@ object Task3 {
             println("ERROR: JSON storage not found")
         } catch (e: NumberFormatException) {
             println("ERROR: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            println("ERROR: ${e.message}")
         }
 
         return true
