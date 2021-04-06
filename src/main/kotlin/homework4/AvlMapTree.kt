@@ -56,7 +56,7 @@ internal class AvlMapTree<K : Comparable<K>, V> {
         val leftChild = node.leftChild
         val rightChild = node.rightChild
 
-        if (!node.hasLeftChild() && !node.hasRightChild()) {
+        if (leftChild == null && rightChild == null) {
             if (parent == null) root = null
             else {
                 if (node === parent.leftChild) parent.leftChild = null
@@ -87,7 +87,8 @@ internal class AvlMapTree<K : Comparable<K>, V> {
     }
 
     fun asSequence() = generateSequence(root?.retrieveSmallestInSubtree()) {
-        if (it.hasRightChild()) it.rightChild?.retrieveSmallestInSubtree()
+        val rightChild = it.rightChild
+        if (rightChild != null) rightChild.retrieveSmallestInSubtree()
         else {
             var node = it
             while (node.parent?.rightChild === node)
