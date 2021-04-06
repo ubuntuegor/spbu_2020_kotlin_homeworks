@@ -2,17 +2,16 @@ package homework4
 
 import kotlin.math.max
 
-internal class AvlMapNode<K, V>(val key: K, val value: V) {
+internal class AvlMapNode<K, V>(override val key: K, override var value: V) : MutableMap.MutableEntry<K, V> {
     var height = 0
     var parent: AvlMapNode<K, V>? = null
     var leftChild: AvlMapNode<K, V>? = null
     var rightChild: AvlMapNode<K, V>? = null
 
+    override fun setValue(newValue: V) = value.also { value = newValue }
+
     private val balanceFactor: Int
         get() = (rightChild?.height ?: 0) - (leftChild?.height ?: 0)
-
-    fun hasLeftChild() = leftChild != null
-    fun hasRightChild() = rightChild != null
 
     fun updateHeightUpwards() {
         height = max(leftChild?.height ?: 0, rightChild?.height ?: 0) + 1
@@ -70,14 +69,14 @@ internal class AvlMapNode<K, V>(val key: K, val value: V) {
 
     fun retrieveSmallestInSubtree(): AvlMapNode<K, V> {
         var node: AvlMapNode<K, V> = this
-        while (node.hasLeftChild())
+        while (node.leftChild != null)
             node = node.leftChild as AvlMapNode
         return node
     }
 
     fun retrieveLargestInSubtree(): AvlMapNode<K, V> {
         var node: AvlMapNode<K, V> = this
-        while (node.hasRightChild())
+        while (node.rightChild != null)
             node = node.rightChild as AvlMapNode
         return node
     }

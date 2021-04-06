@@ -13,45 +13,51 @@ internal class AvlMapTree<K : Comparable<K>, V> {
         return node
     }
 
-    fun insert(insertedNode: AvlMapNode<K, V>): AvlMapNode<K, V>? {
+    fun insert(key: K, value: V): V? {
         var lastDirection = Direction.UNDEFINED
         var parent: AvlMapNode<K, V>? = null
         var node = root
 
-        while (node != null && insertedNode.key != node.key) {
+        while (node != null && key != node.key) {
             parent = node
-            if (insertedNode.key < node.key) {
+            if (key < node.key) {
                 node = node.leftChild
                 lastDirection = Direction.LEFT
-            } else if (insertedNode.key > node.key) {
+            } else if (key > node.key) {
                 node = node.rightChild
                 lastDirection = Direction.RIGHT
             }
         }
 
-        var oldNode: AvlMapNode<K, V>? = null
+        var oldValue: V? = null
 
         if (node != null) {
-            insertedNode.leftChild = node.leftChild
-            insertedNode.rightChild = node.rightChild
-            insertedNode.height = node.height
-            oldNode = node
-        } else size++
+            oldValue = node.setValue(value)
+        } else {
+            val insertedNode = AvlMapNode(key, value)
 
-        if (parent == null) root = insertedNode
-        else {
-            if (lastDirection == Direction.LEFT) parent.leftChild = insertedNode
-            if (lastDirection == Direction.RIGHT) parent.rightChild = insertedNode
-            insertedNode.parent = parent
+            if (parent == null) root = insertedNode
+            else {
+                if (lastDirection == Direction.LEFT) parent.leftChild = insertedNode
+                if (lastDirection == Direction.RIGHT) parent.rightChild = insertedNode
+                insertedNode.parent = parent
+            }
+
+            size++
+            insertedNode.updateHeightUpwards()
+            insertedNode.balanceTreeUpwards()
         }
 
-        insertedNode.updateHeightUpwards()
-        insertedNode.balanceTreeUpwards()
-
-        return oldNode
+        return oldValue
     }
 
-    fun remove(node: AvlMapNode<K, V>) {
+    fun removeByKey(key: K): V? {
+        val toRemove = retrieve(key) ?: return null
+        remove(toRemove)
+        return toRemove.value
+    }
+
+    private fun remove(node: AvlMapNode<K, V>) {
         val parent = node.parent
         val leftChild = node.leftChild
         val rightChild = node.rightChild
