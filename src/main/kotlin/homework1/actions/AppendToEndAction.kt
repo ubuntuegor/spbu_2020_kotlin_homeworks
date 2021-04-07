@@ -8,15 +8,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @SerialName("appendToEnd")
-class AppendToEndAction(private val value: Int) : Action {
+class AppendToEndAction<T>(private val value: T) : Action<T> {
     override val name: String
         get() = "Append $value to end"
 
-    override fun perform(list: MutableList<Int>) {
+    override fun perform(list: MutableList<T>) {
         list.add(value)
     }
 
-    override fun undo(list: MutableList<Int>) {
+    override fun undo(list: MutableList<T>) {
         list.removeLast()
     }
 }
