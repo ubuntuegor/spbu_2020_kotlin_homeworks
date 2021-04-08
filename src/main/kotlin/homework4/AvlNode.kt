@@ -10,7 +10,7 @@ internal class AvlNode<K : Comparable<K>, V>(val key: K, value: V) {
             entry.setValue(newValue)
         }
 
-    private var height = 0
+    private var height = 1
     var leftChild: AvlNode<K, V>? = null
     var rightChild: AvlNode<K, V>? = null
 
