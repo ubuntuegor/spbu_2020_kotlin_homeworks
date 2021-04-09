@@ -2,19 +2,18 @@ package homework4
 
 import kotlin.math.max
 
-internal class AvlNode<K : Comparable<K>, V>(val key: K, value: V) {
-    val entry = AvlMapEntry(key, value)
-    var value: V
-        get() = entry.value
-        set(newValue) {
-            entry.setValue(newValue)
-        }
+internal class AvlNode<K : Comparable<K>, V>(override val key: K, value: V) : MutableMap.MutableEntry<K, V> {
+    private var _value = value
+    override val value: V
+        get() = _value
+
+    override fun setValue(newValue: V) = _value.also { _value = newValue }
 
     private var height = 1
-    var leftChild: AvlNode<K, V>? = null
-    var rightChild: AvlNode<K, V>? = null
+    private var leftChild: AvlNode<K, V>? = null
+    private var rightChild: AvlNode<K, V>? = null
 
-    val childrenCount: Int
+    private val childrenCount: Int
         get() = if (leftChild == null && rightChild == null) 0
         else if (leftChild != null && rightChild != null) 2
         else 1
@@ -22,16 +21,67 @@ internal class AvlNode<K : Comparable<K>, V>(val key: K, value: V) {
     private val balanceFactor: Int
         get() = (rightChild?.height ?: 0) - (leftChild?.height ?: 0)
 
-    fun retrieveLargestInSubtree(): AvlNode<K, V> =
+    fun retrieveChild(key: K): AvlNode<K, V>? =
+        when {
+            key < this.key -> this.leftChild?.retrieveChild(key)
+            key > this.key -> this.rightChild?.retrieveChild(key)
+            else -> this
+        }
+
+    fun insertChild(key: K, value: V): AvlNode<K, V> =
+        when {
+            key < this.key -> {
+                this.leftChild = this.leftChild?.insertChild(key, value) ?: AvlNode(key, value)
+                this.balance()
+            }
+            key > this.key -> {
+                this.rightChild = this.rightChild?.insertChild(key, value) ?: AvlNode(key, value)
+                this.balance()
+            }
+            else -> {
+                this.setValue(value)
+                this
+            }
+        }
+
+    fun removeChild(key: K): AvlNode<K, V>? =
+        when {
+            key < this.key -> {
+                this.leftChild = this.leftChild?.removeChild(key)
+                this.balance()
+            }
+            key > this.key -> {
+                this.rightChild = this.rightChild?.removeChild(key)
+                this.balance()
+            }
+            else -> {
+                when (this.childrenCount) {
+                    0 -> null
+                    1 -> {
+                        this.leftChild ?: this.rightChild
+                    }
+                    else -> {
+                        val replacement = this.leftChild!!.retrieveLargestInSubtree()
+                        this.leftChild = this.leftChild!!.removeChild(replacement.key)
+                        replacement.leftChild = this.leftChild
+                        replacement.rightChild = this.rightChild
+                        replacement.height = this.height
+                        replacement.balance()
+                    }
+                }
+            }
+        }
+
+    private fun retrieveLargestInSubtree(): AvlNode<K, V> =
         generateSequence(this) { it.rightChild }.last()
 
-    fun copyChildrenFrom(node: AvlNode<K, V>) {
-        this.leftChild = node.leftChild
-        this.rightChild = node.rightChild
-        this.height = node.height
+    fun populateEntrySet(set: MutableSet<MutableMap.MutableEntry<K, V>>) {
+        this.leftChild?.populateEntrySet(set)
+        set.add(this)
+        this.rightChild?.populateEntrySet(set)
     }
 
-    fun balance(): AvlNode<K, V> {
+    private fun balance(): AvlNode<K, V> {
         this.updateHeight()
         return when (this.balanceFactor) {
             UNBALANCED_STATE_FACTOR -> {
@@ -73,6 +123,6 @@ internal class AvlNode<K : Comparable<K>, V>(val key: K, value: V) {
     }
 
     companion object Constants {
-        private const val UNBALANCED_STATE_FACTOR = 2
+        const val UNBALANCED_STATE_FACTOR = 2
     }
 }
