@@ -2,7 +2,7 @@ package homework4
 
 import kotlin.math.max
 
-internal class AvlNode<K : Comparable<K>, V>(override val key: K, value: V) : MutableMap.MutableEntry<K, V> {
+class AvlNode<K : Comparable<K>, V>(override val key: K, value: V) : MutableMap.MutableEntry<K, V> {
     private var _value = value
     override val value: V
         get() = _value
