@@ -14,7 +14,7 @@ fun promptString(prompt: String): String {
 }
 
 /**
- * Ask user for text input in the following format - "Enter <name>: ", or die.
+ * Ask user for text input in the following format - "Enter <[name]>: ", or die.
  * @param name What is requested from the user.
  * @return The user-provided string.
  */
