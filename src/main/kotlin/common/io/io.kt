@@ -1,5 +1,31 @@
 package common.io
 
+import common.error.exitWithError
+
+/**
+ * Prompt user for a string.
+ * @param prompt A message that is displayed before reading input.
+ * @throws IllegalArgumentException If input is unavailable.
+ * @return The user-provided string.
+ */
+fun promptString(prompt: String): String {
+    print(prompt)
+    return readLine() ?: throw IllegalArgumentException("Can't read input")
+}
+
+/**
+ * Ask user for text input in the following format - "Enter <name>: ", or die.
+ * @param name What is requested from the user.
+ * @return The user-provided string.
+ */
+fun askFor(name: String): String {
+    try {
+        return promptString("Enter $name: ").trim()
+    } catch (e: IllegalArgumentException) {
+        exitWithError(e.message ?: "Can't read input")
+    }
+}
+
 /**
  * Prompt user for an integer.
  * @param prompt A message that is displayed before reading input.
