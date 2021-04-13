@@ -70,12 +70,14 @@ class ImportFromFileAction(override val map: HashMap<String, String>) : UserMapA
 }
 
 class ChangeHashFunctionAction(override val map: HashMap<String, String>) : UserMapAction {
-    override fun perform() {
-        println("""
+    private val functions = """
             Available hash functions:
               1. Hash Code.
               2. Rolling Hash.
-        """.trimIndent())
+        """.trimIndent()
+
+    override fun perform() {
+        println(functions)
         println()
         try {
             when (promptInt("Enter number: ")) {
