@@ -6,37 +6,37 @@ class ExpressionTree(private val rootNode: ExpressionTreeNode) {
 
     companion object {
         private fun parseArguments(input: String): List<String> {
-            val parenthesisStack = mutableListOf<Unit>()
+            var parenthesisBalance = 0
             val arguments = mutableListOf<String>()
-            var element = ""
+            val element = StringBuilder()
 
             fun pushArgumentIfNotEmpty() {
                 if (element.isNotEmpty()) {
-                    arguments.add(element)
-                    element = ""
+                    arguments.add(element.toString())
+                    element.clear()
                 }
             }
 
             input.forEach {
                 if (it == '(') {
-                    if (parenthesisStack.isEmpty()) pushArgumentIfNotEmpty()
-                    parenthesisStack.add(Unit)
+                    if (parenthesisBalance == 0) pushArgumentIfNotEmpty()
+                    parenthesisBalance++
                 }
 
-                if (it == ' ' && parenthesisStack.isEmpty()) {
+                if (it == ' ' && parenthesisBalance == 0) {
                     pushArgumentIfNotEmpty()
                 } else {
-                    element += it.toString()
+                    element.append(it)
                 }
 
                 if (it == ')') {
-                    parenthesisStack.removeLastOrNull()
-                        ?: throw IllegalArgumentException("Unexpected close bracket")
-                    if (parenthesisStack.isEmpty()) pushArgumentIfNotEmpty()
+                    parenthesisBalance--
+                    if (parenthesisBalance == 0) pushArgumentIfNotEmpty()
                 }
             }
 
-            if (parenthesisStack.isNotEmpty()) throw IllegalArgumentException("Close bracket required but not found")
+            if (parenthesisBalance > 0) throw IllegalArgumentException("Close bracket required but not found")
+            if (parenthesisBalance < 0) throw IllegalArgumentException("Unexpected close bracket")
 
             pushArgumentIfNotEmpty()
 
