@@ -31,12 +31,12 @@ class ExpressionTree(private val rootNode: ExpressionTreeNode) {
 
                 if (it == ')') {
                     parenthesisBalance--
+                    if (parenthesisBalance < 0) throw IllegalArgumentException("Unexpected close bracket")
                     if (parenthesisBalance == 0) pushArgumentIfNotEmpty()
                 }
             }
 
             if (parenthesisBalance > 0) throw IllegalArgumentException("Close bracket required but not found")
-            if (parenthesisBalance < 0) throw IllegalArgumentException("Unexpected close bracket")
 
             pushArgumentIfNotEmpty()
 
@@ -44,20 +44,30 @@ class ExpressionTree(private val rootNode: ExpressionTreeNode) {
         }
 
         private fun parseExpressionTreeNode(input: String): ExpressionTreeNode {
-            if (input[0] != '(') return IntegerNode(input.toInt())
+            val textNode =
+                if (input.startsWith('(') && input.endsWith(')')) input.drop(1).dropLast(1)
+                else input
 
-            val arguments = parseArguments(input.substring(1, input.length - 1)) // Remove surrounding parenthesis
+            return try {
+                IntegerNode(textNode.toInt())
+            } catch (e: NumberFormatException) {
+                val arguments = parseArguments(textNode)
 
-            val operation = arguments[0]
-            val firstNode = parseExpressionTreeNode(arguments[1])
-            val secondNode = parseExpressionTreeNode(arguments[2])
+                if (arguments.size <= 2) {
+                    throw IllegalArgumentException("Expression is neither an integer or a valid operation")
+                }
 
-            return when (operation) {
-                "+" -> AdditionNode(firstNode, secondNode)
-                "-" -> SubtractionNode(firstNode, secondNode)
-                "*" -> MultiplicationNode(firstNode, secondNode)
-                "/" -> DivisionNode(firstNode, secondNode)
-                else -> throw IllegalArgumentException("Operation not found: $operation")
+                val operation = arguments[0]
+                val firstNode = parseExpressionTreeNode(arguments[1])
+                val secondNode = parseExpressionTreeNode(arguments[2])
+
+                when (operation) {
+                    "+" -> AdditionNode(firstNode, secondNode)
+                    "-" -> SubtractionNode(firstNode, secondNode)
+                    "*" -> MultiplicationNode(firstNode, secondNode)
+                    "/" -> DivisionNode(firstNode, secondNode)
+                    else -> throw IllegalArgumentException("Operation not found: $operation")
+                }
             }
         }
 
