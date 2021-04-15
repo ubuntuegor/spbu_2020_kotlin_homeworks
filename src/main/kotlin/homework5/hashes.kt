@@ -6,12 +6,14 @@ interface HashFunctionWrapper<in T> {
     fun hashOf(value: T, modulus: Int): Int
 }
 
-class HashCode : HashFunctionWrapper<Any> {
+object HashCode : HashFunctionWrapper<Any> {
     override fun hashOf(value: Any, modulus: Int) =
         value.hashCode() % modulus
 }
 
-class RollingHash(private val prime: Int = 2) : HashFunctionWrapper<String> {
+object RollingHash : HashFunctionWrapper<String> {
+    private const val prime: Int = 2
+
     override fun hashOf(value: String, modulus: Int): Int {
         var hash = 0
         value.forEachIndexed { i, c ->

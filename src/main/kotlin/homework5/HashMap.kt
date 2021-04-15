@@ -16,7 +16,7 @@ class HashMap<K, V>(hashWrapper: HashFunctionWrapper<K>) {
             initBuckets()
         }
 
-    private fun hashOf(key: K) = hashWrapper.hashOf(key, buckets.size)
+    private fun hashOf(key: K) = _hashWrapper.hashOf(key, buckets.size)
 
     operator fun get(key: K): V? {
         val hash = hashOf(key)
@@ -40,7 +40,8 @@ class HashMap<K, V>(hashWrapper: HashFunctionWrapper<K>) {
             if (loadFactor >= EXPAND_FACTOR) {
                 initBuckets(buckets.size * 2)
             }
-            buckets[hash].add(HashMapEntry(key, value))
+            val newHash = hashOf(key)
+            buckets[newHash].add(HashMapEntry(key, value))
             size++
         }
     }
@@ -58,12 +59,8 @@ class HashMap<K, V>(hashWrapper: HashFunctionWrapper<K>) {
     }
 
     fun getStatistics(): Map<String, Any> {
-        var conflictCount = 0
-        var maxBucketSize = 0
-        buckets.forEach {
-            if (it.size > 1) conflictCount++
-            if (it.size > maxBucketSize) maxBucketSize = it.size
-        }
+        val conflictCount = buckets.count { it.size > 1 }
+        val maxBucketSize = buckets.map { it.size }.maxOrNull() ?: 0
 
         return mapOf(
             "Total elements" to size,

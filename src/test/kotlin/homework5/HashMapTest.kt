@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 
 internal class HashMapTest {
-    private val emptyMap = HashMap<String, String>(HashCode())
-    private val testDataMap = HashMap<String, String>(RollingHash())
+    private val emptyMap = HashMap<String, String>(HashCode)
+    private val testDataMap = HashMap<String, String>(RollingHash)
 
     init {
         testDataMap["em"] = "me"

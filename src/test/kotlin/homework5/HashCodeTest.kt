@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 
 internal class HashCodeTest {
-    private val hashWrapper = HashCode()
+    private val hashWrapper = HashCode
 
     @Test
     fun hashOf() {

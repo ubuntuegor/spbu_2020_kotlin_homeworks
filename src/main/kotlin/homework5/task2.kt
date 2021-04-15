@@ -10,40 +10,30 @@ fun main() {
 }
 
 object Task2 {
-    private val hashMap = HashMap<String, String>(HashCode())
+    private val hashMap = HashMap<String, String>(HashCode)
 
-    private val userActions = """
-            Available actions:
-              (p)ut value.
-              (r)emove value.
-              (g)et value.
-              (s)how statistics.
-              (i)mport from file.
-              (c)hange hash function.
-              (e)xit.
-        """.trimIndent()
+    private const val exitActionTrigger = 'e'
+    private const val exitActionListing = "(e)xit"
+    private val availableActions =
+        listOf(GetAction, PutAction, RemoveAction, ShowStatisticsAction, ImportFromFileAction, ChangeHashFunctionAction)
+
+    private val printableActionList =
+        availableActions.map { it.name.toLowerCase() }.joinToString("\n") { "(${it.first()})${it.drop(1)}." }
+            .plus("\n$exitActionListing.")
 
     fun runUserAction(): Boolean {
         println()
-        println(userActions)
+        println("Available actions:")
+        println(printableActionList.prependIndent("  "))
         println()
 
-        val choice = askFor("choice")
-        println()
+        val choice = askFor("choice").firstOrNull()
 
-        when (choice.first()) {
-            'p' -> PutAction(hashMap)
-            'r' -> RemoveAction(hashMap)
-            'g' -> GetAction(hashMap)
-            's' -> ShowStatisticsAction(hashMap)
-            'i' -> ImportFromFileAction(hashMap)
-            'c' -> ChangeHashFunctionAction(hashMap)
-            'e' -> return false
-            else -> {
-                println("No such action.")
-                null
-            }
-        }?.perform()
+        if (choice == exitActionTrigger) return false
+
+        println()
+        availableActions.find { choice == it.name.toLowerCase().first() }?.perform(hashMap)
+            ?: println("No such action.")
 
         return true
     }
