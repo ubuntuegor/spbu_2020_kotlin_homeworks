@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm") version "1.4.32"
     kotlin("plugin.serialization") version "1.4.32"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
+    id("org.openjfx.javafxplugin") version "0.0.9"
     application
 
     id("org.jetbrains.dokka") version "1.4.20"
@@ -21,9 +22,11 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.32")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("com.charleskorn.kaml:kaml:0.28.3")
     implementation("com.squareup:kotlinpoet:1.6.0")
+    implementation("no.tornado:tornadofx:1.7.20")
     implementation("io.ktor:ktor-client-core:1.5.3")
     implementation("io.ktor:ktor-client-cio:1.5.3")
     implementation("io.ktor:ktor-client-serialization:1.5.3")
@@ -35,6 +38,11 @@ detekt {
     failFast = true // fail build on any finding
     config = files("config/detekt/detekt.yml")
     buildUponDefaultConfig = true
+}
+
+javafx {
+    version = "11.0.2"
+    modules = listOf("javafx.controls", "javafx.graphics")
 }
 
 tasks.test {
@@ -53,7 +61,7 @@ tasks.test {
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
         freeCompilerArgs = listOf("-Werror")
     }
 }
