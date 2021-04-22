@@ -2,15 +2,61 @@ package homework6
 
 import java.util.concurrent.Semaphore
 
-class MergeSortThread<T : Comparable<T>>(
-    private val inputList: List<T>,
-    private val semaphore: Semaphore
-) : Thread() {
+class MergeRunnable<T : Comparable<T>>(
+    private val list1: List<T>,
+    private val list2: List<T>,
+    private val recursionLimit: Int,
+    private val options: MergeSorterOptions
+) : Runnable {
     private lateinit var _result: List<T>
     val result: List<T>
         get() = _result
 
-    private fun merge(list1: List<T>, list2: List<T>): List<T> {
+    private fun searchSplitPosition(list: List<T>, separator: T) =
+        list.binarySearch(separator).let { if (it < 0) it.inv() else it }
+
+    private fun parallelMerge(): List<T> {
+        if (recursionLimit <= 0) return merge()
+
+        val leftList = if (list1.size < list2.size) list2 else list1
+        val rightList = if (list1.size < list2.size) list1 else list2
+        val result = mutableListOf<T>()
+
+        return if (leftList.isEmpty()) result
+        else {
+            options.semaphore.acquireUninterruptibly()
+            val leftListSplit = leftList.size / 2
+            val rightListSplit = searchSplitPosition(rightList, leftList[leftListSplit])
+            options.semaphore.release()
+
+            val leftHalvesRunnable = MergeRunnable(
+                leftList.subList(0, leftListSplit),
+                rightList.subList(0, rightListSplit),
+                recursionLimit - 1,
+                options
+            )
+            val rightHalvesRunnable = MergeRunnable(
+                leftList.subList(leftListSplit + 1, leftList.size),
+                rightList.subList(rightListSplit, rightList.size),
+                recursionLimit - 1,
+                options
+            )
+
+            val leftHalvesThread = Thread(leftHalvesRunnable)
+            leftHalvesThread.start()
+            rightHalvesRunnable.run()
+            leftHalvesThread.join()
+
+            result.addAll(leftHalvesRunnable.result)
+            result.add(leftList[leftListSplit])
+            result.addAll(rightHalvesRunnable.result)
+
+            result
+        }
+    }
+
+    private fun merge(): List<T> {
+        options.semaphore.acquireUninterruptibly()
         val union = mutableListOf<T>()
         var index1 = 0
         var index2 = 0
@@ -23,35 +69,65 @@ class MergeSortThread<T : Comparable<T>>(
                 else -> union.add(list2[index2++])
             }
         }
+        options.semaphore.release()
         return union
     }
 
-    private fun mergeSort(list: List<T>): List<T> {
-        if (list.size <= 1) return list
-        val mid = list.size / 2
-        val leftHalfThread = MergeSortThread(list.subList(0, mid), semaphore)
-        leftHalfThread.start()
-        val rightHalf = mergeSort(list.subList(mid, list.size))
-        leftHalfThread.join()
-
-        semaphore.acquireUninterruptibly()
-        val result = merge(leftHalfThread.result, rightHalf)
-        semaphore.release()
-        return result
-    }
-
     override fun run() {
-        _result = mergeSort(inputList)
+        _result = if (options.useParallelMerge) parallelMerge() else merge()
     }
 }
 
-class MergeSorter<T : Comparable<T>>(threads: Int) {
-    private val semaphore = Semaphore(threads)
+class MergeSortRunnable<T : Comparable<T>>(
+    private val list: List<T>,
+    private val recursionLimit: Int,
+    private val options: MergeSorterOptions
+) : Runnable {
+    private lateinit var _result: List<T>
+    val result: List<T>
+        get() = _result
 
-    fun sort(list: List<T>): List<T> {
-        val thread = MergeSortThread(list, semaphore)
-        thread.start()
-        thread.join()
-        return thread.result
+    private fun mergeSort(): List<T> {
+        if (list.size <= 1) return list
+        val mid = list.size / 2
+        val leftHalfRunnable = MergeSortRunnable(list.subList(0, mid), recursionLimit - 1, options)
+        val rightHalfRunnable = MergeSortRunnable(list.subList(mid, list.size), recursionLimit - 1, options)
+
+        if (recursionLimit > 0) {
+            val leftHalfThread = Thread(leftHalfRunnable)
+            leftHalfThread.start()
+            rightHalfRunnable.run()
+            leftHalfThread.join()
+        } else {
+            leftHalfRunnable.run()
+            rightHalfRunnable.run()
+        }
+
+        return MergeRunnable(
+            leftHalfRunnable.result,
+            rightHalfRunnable.result,
+            recursionLimit,
+            options
+        ).also { it.run() }.result
     }
+
+    override fun run() {
+        _result = mergeSort()
+    }
+}
+
+data class MergeSorterOptions(
+    val useParallelMerge: Boolean,
+    val semaphore: Semaphore
+)
+
+class MergeSorter<T : Comparable<T>>(
+    private val recursionLimit: Int,
+    workingThreads: Int,
+    useParallelMerge: Boolean
+) {
+    private val options = MergeSorterOptions(useParallelMerge, Semaphore(workingThreads))
+
+    fun sort(list: List<T>) =
+        MergeSortRunnable(list, recursionLimit, options).also { it.run() }.result
 }
