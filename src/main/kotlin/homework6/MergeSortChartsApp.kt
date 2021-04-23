@@ -43,7 +43,7 @@ object AppModel {
     private const val minWorkingThreads = 1
     private val maxWorkingThreads = Runtime.getRuntime().availableProcessors() * 2
 
-    private const val defaultRecursionLimit = 5
+    private const val defaultRecursionLimit = 3
     private const val minRecursionLimit = 0
     private const val maxRecursionLimit = 8
 
