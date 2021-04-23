@@ -15,15 +15,15 @@ import kotlin.math.pow
 import tornadofx.*
 import kotlin.system.measureTimeMillis
 
-open class Setting<T>(val range: List<T>, default: T) {
+open class RangedParameter<T>(val range: List<T>, default: T) {
     open val property: Property<T> = SimpleObjectProperty(default)
 }
 
-class IntegerSetting(range: List<Int>, default: Int) : Setting<Number>(range, default) {
+class IntegerRangedParameter(range: List<Int>, default: Int) : RangedParameter<Number>(range, default) {
     override val property = SimpleIntegerProperty(default)
 }
 
-data class RecursionThreads(val recursionLimit: Int) {
+data class RecursionThreadsWrapper(val recursionLimit: Int) {
     val threads: Int
         get() = (2.0).pow(recursionLimit).toInt()
 
@@ -70,16 +70,16 @@ object AppModel {
     val useParallelMergeProperty = SimpleBooleanProperty(defaultUseParallelMerge)
     val useParallelMerge by useParallelMergeProperty
 
-    val elementCountSetting = IntegerSetting(elementCountRange, defaultElementCount)
-    val elementCount by elementCountSetting.property
+    val elementCountParameter = IntegerRangedParameter(elementCountRange, defaultElementCount)
+    val elementCount by elementCountParameter.property
 
-    val workingThreadsSetting = IntegerSetting(workingThreadsRange, defaultWorkingThreads)
-    val workingThreads by workingThreadsSetting.property
+    val workingThreadsParameter = IntegerRangedParameter(workingThreadsRange, defaultWorkingThreads)
+    val workingThreads by workingThreadsParameter.property
 
-    val createdThreadsSetting = Setting(
-        recursionLimitRange.map { RecursionThreads(it) }, RecursionThreads(defaultRecursionLimit)
+    val createdThreadsParameter = RangedParameter(
+        recursionLimitRange.map { RecursionThreadsWrapper(it) }, RecursionThreadsWrapper(defaultRecursionLimit)
     )
-    val createdThreads: RecursionThreads by createdThreadsSetting.property
+    val createdThreads: RecursionThreadsWrapper by createdThreadsParameter.property
 
     val xAxisLabelProperty = SimpleStringProperty()
     val chartData = mutableMapOf<Number, Number>().asObservable()
@@ -134,7 +134,7 @@ class SettingsView : View() {
     }
 
     private val model = AppModel
-    private val controller: MyController by inject()
+    private val controller: ChartController by inject()
 
     private val disableElementCountProperty = model.modeProperty.booleanBinding { it == AppModel.Mode.ByElements }
     private val disableWorkingThreadsProperty =
@@ -153,17 +153,17 @@ class SettingsView : View() {
             checkbox("Use parallel merge", model.useParallelMergeProperty)
 
             label("Number of elements:")
-            combobox(model.elementCountSetting.property, model.elementCountSetting.range) {
+            combobox(model.elementCountParameter.property, model.elementCountParameter.range) {
                 disableProperty().bind(disableElementCountProperty)
             }
 
             label("Number of working threads:")
-            combobox(model.workingThreadsSetting.property, model.workingThreadsSetting.range) {
+            combobox(model.workingThreadsParameter.property, model.workingThreadsParameter.range) {
                 disableProperty().bind(disableWorkingThreadsProperty)
             }
 
             label("Number of created threads:")
-            combobox(model.createdThreadsSetting.property, model.createdThreadsSetting.range) {
+            combobox(model.createdThreadsParameter.property, model.createdThreadsParameter.range) {
                 disableProperty().bind(disableCreatedThreadsProperty)
             }
             text("Warning: too many created threads can\ncause OutOfMemoryException.") {
@@ -186,8 +186,8 @@ class SettingsView : View() {
             button("Build chart") {
                 useMaxWidth = true
                 action {
+                    settingsDisableProperty.value = true
                     runAsync {
-                        settingsDisableProperty.value = true
                         controller.buildChart()
                     } ui {
                         settingsDisableProperty.value = false
@@ -200,7 +200,7 @@ class SettingsView : View() {
     private val settingsDisableProperty = root.disableProperty()
 }
 
-class MyController : Controller() {
+class ChartController : Controller() {
     private val model = AppModel
 
     private fun buildChartByElements() {
@@ -210,7 +210,7 @@ class MyController : Controller() {
             model.workingThreads,
             model.useParallelMerge
         )
-        for (elementCount in model.elementCountSetting.range) {
+        for (elementCount in model.elementCountParameter.range) {
             val list = (1..elementCount as Int).shuffled()
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
             model.chartData[elementCount] = elapsedTime
@@ -220,7 +220,7 @@ class MyController : Controller() {
     private fun buildChartByWorkingThreads() {
         runLater { model.xAxisLabelProperty.value = "Working threads" }
         val list = (1..model.elementCount).shuffled()
-        for (workingThreads in model.workingThreadsSetting.range) {
+        for (workingThreads in model.workingThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
                 model.createdThreads.recursionLimit,
                 workingThreads as Int,
@@ -234,7 +234,7 @@ class MyController : Controller() {
     private fun buildChartByCreatedThreads() {
         runLater { model.xAxisLabelProperty.value = "Created threads" }
         val list = (1..model.elementCount).shuffled()
-        for (createdThreads in model.createdThreadsSetting.range) {
+        for (createdThreads in model.createdThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
                 createdThreads.recursionLimit,
                 model.workingThreads,
