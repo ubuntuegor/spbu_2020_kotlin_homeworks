@@ -5,6 +5,7 @@ package homework6
 import javafx.beans.property.*
 import javafx.collections.MapChangeListener
 import javafx.scene.chart.NumberAxis
+import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -128,6 +129,10 @@ class ChartView : View() {
 }
 
 class SettingsView : View() {
+    companion object {
+        private const val defaultPadding = 10
+    }
+
     private val model = AppModel
     private val controller: MyController by inject()
 
@@ -138,7 +143,8 @@ class SettingsView : View() {
         model.modeProperty.booleanBinding { it == AppModel.Mode.ByCreatedThreads }
 
     override val root: VBox = vbox {
-        addClass(AppStyles.settingsView)
+        paddingAll = defaultPadding
+
         vbox {
             vboxConstraints {
                 vGrow = Priority.ALWAYS
@@ -148,26 +154,32 @@ class SettingsView : View() {
 
             label("Number of elements:")
             combobox(model.elementCountSetting.property, model.elementCountSetting.range) {
-                useMaxWidth = true
                 disableProperty().bind(disableElementCountProperty)
             }
 
             label("Number of working threads:")
             combobox(model.workingThreadsSetting.property, model.workingThreadsSetting.range) {
-                useMaxWidth = true
                 disableProperty().bind(disableWorkingThreadsProperty)
             }
 
             label("Number of created threads:")
             combobox(model.createdThreadsSetting.property, model.createdThreadsSetting.range) {
-                useMaxWidth = true
                 disableProperty().bind(disableCreatedThreadsProperty)
             }
             text("Warning: too many created threads can\ncause OutOfMemoryException.") {
                 fill = Color.GREY
             }
 
-            children.filterIsInstance<Label>().addClass(AppStyles.settingsLabel)
+            children.filterIsInstance<Label>().forEach {
+                it.apply {
+                    paddingTop = defaultPadding
+                }
+            }
+            children.filterIsInstance<ComboBox<Any>>().forEach {
+                it.apply {
+                    useMaxWidth = true
+                }
+            }
         }
 
         vbox {
@@ -244,25 +256,7 @@ class MyController : Controller() {
     }
 }
 
-class AppStyles : Stylesheet() {
-    companion object {
-        val settingsView by cssclass()
-        val settingsLabel by cssclass()
-
-        private const val standardPadding = 10
-    }
-
-    init {
-        settingsView {
-            padding = box(standardPadding.px)
-        }
-        settingsLabel {
-            padding = box(standardPadding.px, 0.px, 0.px, 0.px)
-        }
-    }
-}
-
-class MergeSortChartsApp : App(MainView::class, AppStyles::class)
+class MergeSortChartsApp : App(MainView::class)
 
 fun main(args: Array<String>) {
     launch<MergeSortChartsApp>(args)
