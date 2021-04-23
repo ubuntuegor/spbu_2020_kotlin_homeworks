@@ -204,7 +204,7 @@ class ChartController : Controller() {
     private val model = AppModel
 
     private fun buildChartByElements() {
-        runLater { model.xAxisLabelProperty.value = "Elements" }
+        runLater { model.xAxisLabelProperty.value = "Number of elements" }
         val sorter = MergeSorter<Int>(
             model.createdThreads.recursionLimit,
             model.workingThreads,
@@ -218,7 +218,7 @@ class ChartController : Controller() {
     }
 
     private fun buildChartByWorkingThreads() {
-        runLater { model.xAxisLabelProperty.value = "Working threads" }
+        runLater { model.xAxisLabelProperty.value = "Number of working threads" }
         val list = (1..model.elementCount).shuffled()
         for (workingThreads in model.workingThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
@@ -232,7 +232,7 @@ class ChartController : Controller() {
     }
 
     private fun buildChartByCreatedThreads() {
-        runLater { model.xAxisLabelProperty.value = "Created threads" }
+        runLater { model.xAxisLabelProperty.value = "Number of created threads" }
         val list = (1..model.elementCount).shuffled()
         for (createdThreads in model.createdThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
