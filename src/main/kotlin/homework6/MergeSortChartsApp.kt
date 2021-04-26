@@ -165,6 +165,11 @@ class SettingsView : View() {
     private val disableCreatedThreadsProperty =
         model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByCreatedThreads }
 
+    private val chartNotEmptyProperty = AppModel.Chart.modeProperty.booleanBinding { it != null }
+    private val disableAddingGraphsProperty =
+        AppModel.selectedModeProperty.isNotEqualTo(AppModel.Chart.modeProperty)
+            .and(chartNotEmptyProperty)
+
     override val root: VBox = vbox {
         paddingAll = defaultPadding
 
@@ -216,7 +221,7 @@ class SettingsView : View() {
             }
             button("Add another graph") {
                 useMaxWidth = true
-                disableProperty().bind(AppModel.selectedModeProperty.isNotEqualTo(AppModel.Chart.modeProperty))
+                disableProperty().bind(disableAddingGraphsProperty)
                 action {
                     settingsDisableProperty.value = true
                     runAsync {
