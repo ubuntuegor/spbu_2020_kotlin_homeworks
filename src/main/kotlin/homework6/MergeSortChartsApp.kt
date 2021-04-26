@@ -276,6 +276,8 @@ class ChartController : Controller() {
         chart.graphs.clear()
     }
 
+    private fun createRandomList(size: Int) = (1..size).shuffled()
+
     private fun buildGraphByElements() {
         val chartSeries = AppModel.Graph("$workingThreadsString, $createdThreadsString, $parallelMergeString")
         chart.graphs.add(chartSeries)
@@ -285,7 +287,7 @@ class ChartController : Controller() {
             model.useParallelMerge
         )
         for (elementCount in model.elementCountParameter.range) {
-            val list = (1..elementCount as Int).shuffled()
+            val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
             chartSeries.data[elementCount] = elapsedTime
         }
@@ -294,7 +296,7 @@ class ChartController : Controller() {
     private fun buildGraphByWorkingThreads() {
         val chartSeries = AppModel.Graph("$elementsString, $createdThreadsString, $parallelMergeString")
         chart.graphs.add(chartSeries)
-        val list = (1..model.elementCount).shuffled()
+        val list = createRandomList(model.elementCount)
         for (workingThreads in model.workingThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
                 model.createdThreads.recursionLimit,
@@ -309,7 +311,7 @@ class ChartController : Controller() {
     private fun buildGraphByCreatedThreads() {
         val chartSeries = AppModel.Graph("$elementsString, $workingThreadsString, $parallelMergeString")
         chart.graphs.add(chartSeries)
-        val list = (1..model.elementCount).shuffled()
+        val list = createRandomList(model.elementCount)
         for (createdThreads in model.createdThreadsParameter.range) {
             val sorter = MergeSorter<Int>(
                 createdThreads.recursionLimit,
