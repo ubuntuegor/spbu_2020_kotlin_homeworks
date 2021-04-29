@@ -8,15 +8,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @SerialName("appendToStart")
-class AppendToStartAction(private val value: Int) : Action {
+class AppendToStartAction<T>(private val value: T) : Action<T> {
     override val name: String
         get() = "Append $value to start"
 
-    override fun perform(list: MutableList<Int>) {
+    override fun perform(list: MutableList<T>) {
         list.add(0, value)
     }
 
-    override fun undo(list: MutableList<Int>) {
+    override fun undo(list: MutableList<T>) {
         list.removeFirst()
     }
 }

@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.net.URL
 
 plugins {
-    kotlin("jvm") version "1.4.31"
-    kotlin("plugin.serialization") version "1.4.31"
+    kotlin("jvm") version "1.4.32"
+    kotlin("plugin.serialization") version "1.4.32"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
     id("org.openjfx.javafxplugin") version "0.0.9"
     application

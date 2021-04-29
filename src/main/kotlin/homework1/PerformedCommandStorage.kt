@@ -1,29 +1,31 @@
 package homework1
 
-import homework1.actions.Action
-import homework1.actions.AppendToEndAction
-import homework1.actions.AppendToStartAction
-import homework1.actions.MoveElementAction
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.io.File
+import homework1.actions.Action
+import homework1.actions.AppendToStartAction
+import homework1.actions.AppendToEndAction
+import homework1.actions.MoveElementAction
+import homework1.serialization.IntAsObjectSerializer
+import kotlinx.serialization.PolymorphicSerializer
 
 /**
- * Stores an ordered list of integers along with the history of changes.
+ * Stores an ordered list of T along with the history of changes.
  */
-class PerformedCommandStorage {
-    private val performedActions = mutableListOf<Action>()
+class PerformedCommandStorage<T> {
+    private val performedActions = mutableListOf<Action<T>>()
 
-    private val _storage = mutableListOf<Int>()
+    private val _storage = mutableListOf<T>()
 
     /**
      * Current state of the storage in form of a [List].
      */
-    val storage: List<Int>
+    val storage: List<T>
         get() = _storage.toList()
 
     /**
@@ -38,7 +40,7 @@ class PerformedCommandStorage {
      * @param action Action to be applied.
      * @throws IllegalArgumentException If action fails with provided parameters.
      */
-    fun performAction(action: Action) {
+    fun performAction(action: Action<T>) {
         action.perform(_storage)
         performedActions.add(action)
     }
@@ -53,32 +55,37 @@ class PerformedCommandStorage {
         performedActions.removeLast()
     }
 
-    private val module = SerializersModule {
-        polymorphic(Action::class) {
-            subclass(AppendToStartAction::class)
-            subclass(AppendToEndAction::class)
-            subclass(MoveElementAction::class)
+    companion object IntJson {
+        private val module = SerializersModule {
+            polymorphic(Any::class) {
+                subclass(IntAsObjectSerializer)
+            }
+            polymorphic(Action::class) {
+                subclass(AppendToStartAction.serializer(PolymorphicSerializer(Any::class)))
+                subclass(AppendToEndAction.serializer(PolymorphicSerializer(Any::class)))
+                subclass(MoveElementAction.serializer(PolymorphicSerializer(Any::class)))
+            }
         }
-    }
 
-    private val format = Json { serializersModule = module }
+        private val format = Json { serializersModule = module }
 
-    /**
-     * Performs actions from a given file.
-     * @param filename Path to the JSON file.
-     */
-    fun loadFromJson(filename: String) {
-        val text = File(filename).readText()
-        val actions = format.decodeFromString<MutableList<Action>>(text)
-        actions.forEach { performAction(it) }
-    }
+        /**
+         * Performs actions from a given file.
+         * @param filename Path to the JSON file.
+         */
+        fun PerformedCommandStorage<Int>.loadFromJson(filename: String) {
+            val text = File(filename).readText()
+            val actions = format.decodeFromString<MutableList<Action<Int>>>(text)
+            actions.forEach { this.performAction(it) }
+        }
 
-    /**
-     * Saves all actions into a file.
-     * @param filename Path to the JSON file.
-     */
-    fun saveToJson(filename: String) {
-        val text = format.encodeToString(performedActions)
-        File(filename).writeText(text)
+        /**
+         * Saves all actions into a file.
+         * @param filename Path to the JSON file.
+         */
+        fun PerformedCommandStorage<Int>.saveToJson(filename: String) {
+            val text = format.encodeToString(this.performedActions)
+            File(filename).writeText(text)
+        }
     }
 }
