@@ -125,9 +125,9 @@ class MergeSorter<T : Comparable<T>>(
     private val recursionLimit: Int,
     workingThreads: Int,
     useParallelMerge: Boolean
-) {
+) : Sorter<T> {
     private val options = MergeSorterOptions(useParallelMerge, Semaphore(workingThreads))
 
-    fun sort(list: List<T>) =
+    override fun sort(list: List<T>) =
         MergeSortRunnable(list, recursionLimit, options).also { it.run() }.result
 }

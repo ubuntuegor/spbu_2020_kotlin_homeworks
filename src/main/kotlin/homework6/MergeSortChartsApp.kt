@@ -20,12 +20,13 @@ import kotlin.system.measureTimeMillis
 object AppModel {
     private val defaultMode = Mode.ByElements
 
+    private const val defaultUseCoroutines = false
     private const val defaultUseParallelMerge = true
 
-    private const val defaultElementCount = 50000
+    private const val defaultElementCount = 50_000
     private const val minElementCount = 1000
     private const val elementCountStep = 1000
-    private const val maxElementCount = 100000
+    private const val maxElementCount = 100_000
 
     private val defaultWorkingThreads = Runtime.getRuntime().availableProcessors()
     private const val minWorkingThreads = 1
@@ -33,7 +34,7 @@ object AppModel {
 
     private const val defaultRecursionLimit = 3
     private const val minRecursionLimit = 0
-    private const val maxRecursionLimit = 8
+    private const val maxRecursionLimit = 10
 
     enum class Mode {
         ByElements {
@@ -69,6 +70,9 @@ object AppModel {
     val selectedModeProperty = SimpleObjectProperty(defaultMode)
     val selectedMode: Mode by selectedModeProperty
 
+    val useCoroutinesProperty = SimpleBooleanProperty(defaultUseCoroutines)
+    val useCoroutines by useCoroutinesProperty
+
     val useParallelMergeProperty = SimpleBooleanProperty(defaultUseParallelMerge)
     val useParallelMerge by useParallelMergeProperty
 
@@ -92,6 +96,10 @@ object AppModel {
         var mode: Mode? by modeProperty
         val graphs = mutableListOf<Graph>().asObservable()
     }
+
+    fun getSorter(recursionLimit: Int, workingThreads: Int, useParallelMerge: Boolean): Sorter<Int> =
+        if (useCoroutines) CoroutinesMergeSorter(recursionLimit, workingThreads, useParallelMerge)
+        else MergeSorter(recursionLimit, workingThreads, useParallelMerge)
 }
 
 class MainView : View("Merge Sort Chart") {
@@ -178,7 +186,11 @@ class SettingsView : View() {
                 vGrow = Priority.ALWAYS
             }
 
-            checkbox("Use parallel merge", model.useParallelMergeProperty)
+            vbox {
+                spacing = defaultPadding.toDouble()
+                checkbox("Use coroutines", model.useCoroutinesProperty)
+                checkbox("Use parallel merge", model.useParallelMergeProperty)
+            }
 
             label("Number of elements:")
             combobox(model.elementCountParameter.property, model.elementCountParameter.range) {
@@ -194,7 +206,7 @@ class SettingsView : View() {
             combobox(model.createdThreadsParameter.property, model.createdThreadsParameter.range) {
                 disableProperty().bind(disableCreatedThreadsProperty)
             }
-            text("Warning: too many created threads can\ncause OutOfMemoryException.") {
+            text("Warning: too many created threads can\ncause various exceptions.") {
                 fill = Color.GREY
             }
 
@@ -226,7 +238,7 @@ class SettingsView : View() {
                     settingsDisableProperty.value = true
                     runAsync {
                         controller.buildGraph()
-                    } ui {
+                    } finally {
                         settingsDisableProperty.value = false
                     }
                 }
@@ -243,7 +255,7 @@ class SettingsView : View() {
                     runAsync {
                         controller.clear()
                         controller.buildGraph()
-                    } ui {
+                    } finally {
                         settingsDisableProperty.value = false
                     }
                 }
@@ -270,6 +282,8 @@ class ChartController : Controller() {
         get() = "${model.createdThreads} created"
     private val parallelMergeString: String
         get() = if (model.useParallelMerge) "parallel merge" else "normal merge"
+    private val coroutinesString: String
+        get() = if (model.useCoroutines) "coroutines" else "threads"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -279,9 +293,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = (1..size).shuffled()
 
     private fun buildGraphByElements() {
-        val chartSeries = AppModel.Graph("$workingThreadsString, $createdThreadsString, $parallelMergeString")
+        val chartSeries =
+            AppModel.Graph("$workingThreadsString, $createdThreadsString, $parallelMergeString, $coroutinesString")
         chart.graphs.add(chartSeries)
-        val sorter = MergeSorter<Int>(
+        val sorter = model.getSorter(
             model.createdThreads.recursionLimit,
             model.workingThreads,
             model.useParallelMerge
@@ -294,11 +309,12 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByWorkingThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, $createdThreadsString, $parallelMergeString")
+        val chartSeries =
+            AppModel.Graph("$elementsString, $createdThreadsString, $parallelMergeString, $coroutinesString")
         chart.graphs.add(chartSeries)
         val list = createRandomList(model.elementCount)
         for (workingThreads in model.workingThreadsParameter.range) {
-            val sorter = MergeSorter<Int>(
+            val sorter = model.getSorter(
                 model.createdThreads.recursionLimit,
                 workingThreads as Int,
                 model.useParallelMerge
@@ -309,11 +325,12 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, $workingThreadsString, $parallelMergeString")
+        val chartSeries =
+            AppModel.Graph("$elementsString, $workingThreadsString, $parallelMergeString, $coroutinesString")
         chart.graphs.add(chartSeries)
         val list = createRandomList(model.elementCount)
         for (createdThreads in model.createdThreadsParameter.range) {
-            val sorter = MergeSorter<Int>(
+            val sorter = model.getSorter(
                 createdThreads.recursionLimit,
                 model.workingThreads,
                 model.useParallelMerge
