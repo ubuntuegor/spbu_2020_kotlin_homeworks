@@ -34,7 +34,7 @@ object AppModel {
 
     private const val defaultRecursionLimit = 3
     private const val minRecursionLimit = 0
-    private const val maxRecursionLimit = 10
+    private const val maxRecursionLimit = 9
 
     enum class Mode {
         ByElements {

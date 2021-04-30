@@ -1,8 +1,12 @@
 package homework6
 
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.Semaphore
+import kotlin.math.max
 
 class CoroutinesMergeSorter<T : Comparable<T>>(
     private val recursionLimit: Int,
@@ -14,16 +18,15 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
     private fun searchSplitPosition(list: List<T>, separator: T) =
         list.binarySearch(separator).let { if (it < 0) it.inv() else it }
 
-    private fun parallelMerge(list1: List<T>, list2: List<T>, recursionLimit: Int): List<T> {
-        if (recursionLimit <= 0) return syncMerge(list1, list2)
+    private suspend fun parallelMerge(list1: List<T>, list2: List<T>, recursionLimit: Int): List<T> = coroutineScope {
+        when {
+            recursionLimit <= 0 -> syncMerge(list1, list2)
+            max(list1.size, list2.size) == 0 -> listOf()
+            else -> {
+                val leftList = if (list1.size < list2.size) list2 else list1
+                val rightList = if (list1.size < list2.size) list1 else list2
+                val result = mutableListOf<T>()
 
-        return runBlocking {
-            val leftList = if (list1.size < list2.size) list2 else list1
-            val rightList = if (list1.size < list2.size) list1 else list2
-            val result = mutableListOf<T>()
-
-            if (leftList.isEmpty()) result
-            else {
                 semaphore.acquireUninterruptibly()
                 val leftListSplit = leftList.size / 2
                 val rightListSplit = searchSplitPosition(rightList, leftList[leftListSplit])
@@ -71,13 +74,12 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
     }
 
     private fun merge(list1: List<T>, list2: List<T>, recursionLimit: Int) =
-        if (useParallelMerge) parallelMerge(list1, list2, recursionLimit)
+        if (useParallelMerge) runBlocking { parallelMerge(list1, list2, recursionLimit) }
         else syncMerge(list1, list2)
 
-    private fun mergeSort(list: List<T>, recursionLimit: Int): List<T> {
-        if (list.size <= 1) return list
-
-        return runBlocking {
+    private suspend fun mergeSort(list: List<T>, recursionLimit: Int): List<T> = coroutineScope {
+        if (list.size <= 1) list
+        else {
             val mid = list.size / 2
 
             if (recursionLimit > 0) {
@@ -93,5 +95,9 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
         }
     }
 
-    override fun sort(list: List<T>) = mergeSort(list, recursionLimit)
+    override fun sort(list: List<T>) = runBlocking {
+        withContext(Dispatchers.Default) {
+            mergeSort(list, recursionLimit)
+        }
+    }
 }
