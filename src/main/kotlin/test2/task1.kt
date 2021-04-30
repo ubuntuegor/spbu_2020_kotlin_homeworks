@@ -8,6 +8,7 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -76,7 +77,7 @@ suspend fun main() = coroutineScope {
                 val weather = weatherClient.getWeatherForCity(it)
                 printWeather(weather)
             } catch (e: ClientRequestException) {
-                println("Error for city $it: ${e.message}")
+                println("Error for city $it: ${e.response.status} - ${e.response.readText()}")
             }
         }
     }
