@@ -21,6 +21,8 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
 
       - name: Run detekt
         run: ./gradlew detekt
@@ -39,6 +41,8 @@ jobs:
 
       - name: Run tests
         run: .\gradlew test
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
 
       - name: Run detekt
         run: .\gradlew detekt
