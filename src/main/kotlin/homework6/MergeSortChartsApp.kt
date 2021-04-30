@@ -131,23 +131,23 @@ class ChartView : View() {
         xAxis.labelProperty().bind(xAxisLabelProperty)
     }
 
-    private fun addGraph(charts: List<AppModel.Graph>) {
-        charts.forEach {
+    private fun addGraphs(graphs: List<AppModel.Graph>) {
+        graphs.forEach {
             val series = root.series(it.name)
-            it.data.addListener(MapChangeListener { seriesChange ->
+            it.data.addListener(MapChangeListener { dataChange ->
                 runLater {
-                    series.apply { data(seriesChange.key, seriesChange.valueAdded) }
+                    if (dataChange.wasAdded()) series.apply { data(dataChange.key, dataChange.valueAdded) }
                 }
             })
         }
     }
 
     init {
-        graphs.addListener(ListChangeListener { chartChange ->
-            while (chartChange.next()) {
+        graphs.addListener(ListChangeListener { graphsChange ->
+            while (graphsChange.next()) {
                 runLater {
-                    if (chartChange.wasRemoved()) root.data.clear()
-                    if (chartChange.wasAdded()) addGraph(chartChange.addedSubList)
+                    if (graphsChange.wasRemoved()) root.data.clear()
+                    if (graphsChange.wasAdded()) addGraphs(graphsChange.addedSubList)
                 }
             }
         })
@@ -226,7 +226,7 @@ class SettingsView : View() {
                     settingsDisableProperty.value = true
                     runAsync {
                         controller.buildGraph()
-                    } ui {
+                    } finally {
                         settingsDisableProperty.value = false
                     }
                 }
@@ -243,7 +243,7 @@ class SettingsView : View() {
                     runAsync {
                         controller.clear()
                         controller.buildGraph()
-                    } ui {
+                    } finally {
                         settingsDisableProperty.value = false
                     }
                 }
