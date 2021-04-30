@@ -16,16 +16,10 @@ jobs:
           distribution: 'adopt'
           java-version: '11'
 
-      - name: Run build
-        run: ./gradlew build
-
-      - name: Run tests
-        run: ./gradlew test
+      - name: Run build, detekt, tests
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-
-      - name: Run detekt
-        run: ./gradlew detekt
+        run: ./gradlew build
 
   build-windows:
     runs-on: windows-latest
@@ -36,13 +30,7 @@ jobs:
           distribution: 'adopt'
           java-version: '11'
 
-      - name: Run build
-        run: .\gradlew build
-
-      - name: Run tests
-        run: .\gradlew test
+      - name: Run build, detekt, tests
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-
-      - name: Run detekt
-        run: .\gradlew detekt
+        run: .\gradlew build
