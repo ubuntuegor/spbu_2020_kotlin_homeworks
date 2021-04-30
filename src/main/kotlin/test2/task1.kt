@@ -5,20 +5,16 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.features.ClientRequestException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
 import java.io.File
 import java.io.FileNotFoundException
-
-val API_KEY = System.getenv("OPENWEATHER_API_KEY") ?: ""
 
 @Serializable
 data class Weather(
@@ -43,11 +39,24 @@ class WeatherClient {
     }
 
     suspend fun getWeatherForCity(city: String) =
-        client.get<Weather>("https://api.openweathermap.org/data/2.5/weather") {
+        client.get<Weather>("https://$API_HOST/data/$API_VERSION/weather") {
             parameter("q", city)
             parameter("appid", API_KEY)
             parameter("units", "metric")
         }
+
+    companion object {
+        private val API_KEY = System.getenv("OPENWEATHER_API_KEY") ?: ""
+        private const val API_HOST = "api.openweathermap.org"
+        private const val API_VERSION = "2.5"
+    }
+}
+
+fun printWeather(weather: Weather) {
+    val city = weather.name
+    val temperature = weather.main.temp.roundToInt()
+    val description = weather.weather.firstOrNull()?.main
+    println("$city: $temperature°C, $description")
 }
 
 suspend fun main() = coroutineScope {
@@ -61,21 +70,14 @@ suspend fun main() = coroutineScope {
 
     val weatherClient = WeatherClient()
 
-    val requests = cities.map {
-        async(Dispatchers.Default) {
+    cities.forEach {
+        launch {
             try {
-                weatherClient.getWeatherForCity(it)
+                val weather = weatherClient.getWeatherForCity(it)
+                printWeather(weather)
             } catch (e: ClientRequestException) {
                 println("Error for city $it: ${e.message}")
-                null
             }
         }
-    }
-
-    requests.awaitAll().filterNotNull().forEach {
-        val city = it.name
-        val temperature = it.main.temp.roundToInt()
-        val description = it.weather.firstOrNull()?.main
-        println("$city: $temperature°C, $description")
     }
 }
