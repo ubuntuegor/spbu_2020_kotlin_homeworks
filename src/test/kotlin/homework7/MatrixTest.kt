@@ -12,7 +12,7 @@ internal class MatrixTest {
         fun multiplicationData() = listOf(
             Arguments.of(
                 Matrix(listOf()),
-                Matrix(listOf()),
+                Matrix(listOf(listOf())),
                 Matrix(listOf())
             ),
             Arguments.of(

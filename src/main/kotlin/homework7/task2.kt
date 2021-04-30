@@ -12,7 +12,7 @@ operator fun List<Int>.times(multiplier: List<Int>): Int {
 
 data class Matrix(val matrix: List<List<Int>>) {
     private val width = matrix.firstOrNull()?.size ?: 0
-    private val height = matrix.size
+    private val height = if (width != 0) matrix.size else 0
 
     private val columns = (1..width).map { index -> matrix.map { it[index - 1] } }
     private val rows = matrix
@@ -22,7 +22,7 @@ data class Matrix(val matrix: List<List<Int>>) {
             throw IllegalArgumentException("Cannot multiply matrix with width $width by matrix with height $height")
         }
 
-        if (height == 0 || width == 0) Matrix(listOf())
+        if (height == 0 || multiplier.width == 0) Matrix(listOf())
         else Matrix(
             rows.flatMap { row ->
                 multiplier.columns.map { column ->
