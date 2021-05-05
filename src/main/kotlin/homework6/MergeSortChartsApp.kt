@@ -14,36 +14,28 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import java.lang.Runtime
 import kotlin.math.pow
 import tornadofx.*
 import kotlin.system.measureTimeMillis
 
 object AppModel {
-    private val defaultMode = Mode.ByElements
+    private val MODE_DEFAULT = Mode.ByElements
 
     private const val defaultUseCoroutines = false
-    private const val defaultUseParallelMerge = true
+    private const val USE_PARALLEL_MERGE_DEFAULT = true
 
-    private const val defaultElementCount = 50_000
-    private const val minElementCount = 1000
-    private const val elementCountStep = 1000
-    private const val maxElementCount = 100_000
+    private const val ELEMENT_COUNT_DEFAULT = 50_000
+    private const val ELEMENT_COUNT_MIN = 1000
+    private const val ELEMENT_COUNT_STEP = 1000
+    private const val ELEMENT_COUNT_MAX = 100_000
 
-    private val defaultWorkingThreads = Runtime.getRuntime().availableProcessors()
-    private const val minWorkingThreads = 1
-    private const val maxWorkingThreads = 128
-
-    private const val defaultRecursionLimit = 3
-    private const val minRecursionLimit = 0
-    private const val maxRecursionLimit = 9
+    private const val RECURSION_LIMIT_DEFAULT = 3
+    private const val RECURSION_LIMIT_MIN = 0
+    private const val RECURSION_LIMIT_MAX = 8
 
     enum class Mode {
         ByElements {
             override fun toString() = "By elements"
-        },
-        ByWorkingThreads {
-            override fun toString() = "By working threads"
         },
         ByCreatedThreads {
             override fun toString() = "By created threads"
@@ -58,6 +50,21 @@ object AppModel {
         override val property = SimpleIntegerProperty(default)
     }
 
+    private val ELEMENT_COUNT_RANGE = (ELEMENT_COUNT_MIN..ELEMENT_COUNT_MAX step ELEMENT_COUNT_STEP).toList()
+    private val RECURSION_LIMIT_RANGE = (RECURSION_LIMIT_MIN..RECURSION_LIMIT_MAX).toList()
+
+    val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
+    val selectedMode: Mode by selectedModeProperty
+
+    val useCoroutinesProperty = SimpleBooleanProperty(defaultUseCoroutines)
+    val useCoroutines by useCoroutinesProperty
+
+    val useParallelMergeProperty = SimpleBooleanProperty(USE_PARALLEL_MERGE_DEFAULT)
+    val useParallelMerge by useParallelMergeProperty
+
+    val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
+    val elementCount by elementCountParameter.property
+
     data class RecursionThreadsWrapper(val recursionLimit: Int) {
         val threads: Int
             get() = (2.0).pow(recursionLimit).toInt()
@@ -65,27 +72,8 @@ object AppModel {
         override fun toString() = threads.toString()
     }
 
-    private val elementCountRange = (minElementCount..maxElementCount step elementCountStep).toList()
-    private val workingThreadsRange = (minWorkingThreads..maxWorkingThreads).toList()
-    private val recursionLimitRange = (minRecursionLimit..maxRecursionLimit)
-
-    val selectedModeProperty = SimpleObjectProperty(defaultMode)
-    val selectedMode: Mode by selectedModeProperty
-
-    val useCoroutinesProperty = SimpleBooleanProperty(defaultUseCoroutines)
-    val useCoroutines by useCoroutinesProperty
-
-    val useParallelMergeProperty = SimpleBooleanProperty(defaultUseParallelMerge)
-    val useParallelMerge by useParallelMergeProperty
-
-    val elementCountParameter = IntegerRangedParameter(elementCountRange, defaultElementCount)
-    val elementCount by elementCountParameter.property
-
-    val workingThreadsParameter = IntegerRangedParameter(workingThreadsRange, defaultWorkingThreads)
-    val workingThreads by workingThreadsParameter.property
-
     val createdThreadsParameter = RangedParameter(
-        recursionLimitRange.map { RecursionThreadsWrapper(it) }, RecursionThreadsWrapper(defaultRecursionLimit)
+        RECURSION_LIMIT_RANGE.map { RecursionThreadsWrapper(it) }, RecursionThreadsWrapper(RECURSION_LIMIT_DEFAULT)
     )
     val createdThreads: RecursionThreadsWrapper by createdThreadsParameter.property
 
@@ -128,7 +116,6 @@ class ChartView : View() {
     private val xAxisLabelProperty = AppModel.Chart.modeProperty.stringBinding {
         when (it) {
             AppModel.Mode.ByElements -> "Number of elements"
-            AppModel.Mode.ByWorkingThreads -> "Number of working threads"
             AppModel.Mode.ByCreatedThreads -> "Number of created threads"
             null -> null
         }
@@ -141,17 +128,6 @@ class ChartView : View() {
         xAxis.labelProperty().bind(xAxisLabelProperty)
     }
 
-    private fun addGraphs(graphs: List<AppModel.Graph>) {
-        graphs.forEach {
-            val series = root.series(it.name)
-            it.data.addListener(MapChangeListener { dataChange ->
-                runLater {
-                    if (dataChange.wasAdded()) series.apply { data(dataChange.key, dataChange.valueAdded) }
-                }
-            })
-        }
-    }
-
     init {
         graphs.addListener(ListChangeListener { graphsChange ->
             while (graphsChange.next()) {
@@ -162,6 +138,17 @@ class ChartView : View() {
             }
         })
     }
+
+    private fun addGraphs(graphs: List<AppModel.Graph>) {
+        graphs.forEach {
+            val series = root.series(it.name)
+            it.data.addListener(MapChangeListener { dataChange ->
+                runLater {
+                    if (dataChange.wasAdded()) series.apply { data(dataChange.key, dataChange.valueAdded) }
+                }
+            })
+        }
+    }
 }
 
 class SettingsView : View() {
@@ -170,8 +157,6 @@ class SettingsView : View() {
 
     private val disableElementCountProperty =
         model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByElements }
-    private val disableWorkingThreadsProperty =
-        model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByWorkingThreads }
     private val disableCreatedThreadsProperty =
         model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByCreatedThreads }
 
@@ -181,7 +166,7 @@ class SettingsView : View() {
             .and(chartNotEmptyProperty)
 
     override val root: VBox = vbox {
-        paddingAll = defaultPadding
+        paddingAll = DEFAULT_PADDING
 
         vbox {
             vboxConstraints {
@@ -199,11 +184,6 @@ class SettingsView : View() {
                 disableProperty().bind(disableElementCountProperty)
             }
 
-            label("Number of working threads:")
-            combobox(model.workingThreadsParameter.property, model.workingThreadsParameter.range) {
-                disableProperty().bind(disableWorkingThreadsProperty)
-            }
-
             label("Number of created threads:")
             combobox(model.createdThreadsParameter.property, model.createdThreadsParameter.range) {
                 disableProperty().bind(disableCreatedThreadsProperty)
@@ -214,7 +194,7 @@ class SettingsView : View() {
 
             children.filterIsInstance<Label>().forEach {
                 it.apply {
-                    paddingTop = defaultPadding
+                    paddingTop = DEFAULT_PADDING
                 }
             }
             children.filterIsInstance<ComboBox<Any>>().forEach {
@@ -225,7 +205,7 @@ class SettingsView : View() {
         }
 
         vbox {
-            spacing = defaultPadding.toDouble()
+            spacing = DEFAULT_PADDING.toDouble()
 
             button("Clear") {
                 useMaxWidth = true
@@ -268,7 +248,7 @@ class SettingsView : View() {
     private val settingsDisableProperty = root.disableProperty()
 
     companion object {
-        private const val defaultPadding = 10
+        private const val DEFAULT_PADDING = 10
     }
 }
 
@@ -278,10 +258,8 @@ class ChartController : Controller() {
 
     private val elementsString: String
         get() = "${model.elementCount} elements"
-    private val workingThreadsString: String
-        get() = "${model.workingThreads} working"
     private val createdThreadsString: String
-        get() = "${model.createdThreads} created"
+        get() = "${model.createdThreads} threads"
     private val parallelMergeString: String
         get() = if (model.useParallelMerge) "parallel merge" else "normal merge"
     private val coroutinesString: String
@@ -295,14 +273,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = (1..size).shuffled()
 
     private fun buildGraphByElements() {
-        val chartSeries =
-            AppModel.Graph("$workingThreadsString, $createdThreadsString, $parallelMergeString, $coroutinesString")
+        val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString, $coroutinesString")
         chart.graphs.add(chartSeries)
-        val sorter = model.getSorter(
-            model.createdThreads.recursionLimit,
-            model.workingThreads,
-            model.useParallelMerge
-        )
+
+        val sorter = model.getSorter(model.createdThreads.recursionLimit, model.useParallelMerge)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -310,33 +284,13 @@ class ChartController : Controller() {
         }
     }
 
-    private fun buildGraphByWorkingThreads() {
-        val chartSeries =
-            AppModel.Graph("$elementsString, $createdThreadsString, $parallelMergeString, $coroutinesString")
-        chart.graphs.add(chartSeries)
-        val list = createRandomList(model.elementCount)
-        for (workingThreads in model.workingThreadsParameter.range) {
-            val sorter = model.getSorter(
-                model.createdThreads.recursionLimit,
-                workingThreads as Int,
-                model.useParallelMerge
-            )
-            val elapsedTime = measureTimeMillis { sorter.sort(list) }
-            chartSeries.data[workingThreads] = elapsedTime
-        }
-    }
-
     private fun buildGraphByCreatedThreads() {
-        val chartSeries =
-            AppModel.Graph("$elementsString, $workingThreadsString, $parallelMergeString, $coroutinesString")
+        val chartSeries = AppModel.Graph("$elementsString, $parallelMergeString, $coroutinesString")
         chart.graphs.add(chartSeries)
+
         val list = createRandomList(model.elementCount)
         for (createdThreads in model.createdThreadsParameter.range) {
-            val sorter = model.getSorter(
-                createdThreads.recursionLimit,
-                model.workingThreads,
-                model.useParallelMerge
-            )
+            val sorter = model.getSorter(createdThreads.recursionLimit, model.useParallelMerge)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
             chartSeries.data[createdThreads.threads] = elapsedTime
         }
@@ -346,7 +300,6 @@ class ChartController : Controller() {
         runLater { AppModel.Chart.mode = model.selectedMode }
         when (model.selectedMode) {
             AppModel.Mode.ByElements -> buildGraphByElements()
-            AppModel.Mode.ByWorkingThreads -> buildGraphByWorkingThreads()
             AppModel.Mode.ByCreatedThreads -> buildGraphByCreatedThreads()
         }
     }
