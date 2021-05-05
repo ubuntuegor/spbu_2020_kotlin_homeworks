@@ -1,3 +1,4 @@
+@file:Suppress("NoWildcardImports", "WildcardImport")
 package homework6
 
 import javafx.beans.property.Property
@@ -15,36 +16,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import java.lang.Runtime
 import kotlin.math.pow
-import tornadofx.asObservable
-import tornadofx.getValue
-import tornadofx.setValue
-import tornadofx.View
-import tornadofx.borderpane
-import tornadofx.listview
-import tornadofx.bindSelected
-import tornadofx.selectWhere
-import tornadofx.stringBinding
-import tornadofx.areachart
-import tornadofx.series
-import tornadofx.runLater
-import tornadofx.booleanBinding
-import tornadofx.vbox
-import tornadofx.paddingAll
-import tornadofx.data
-import tornadofx.vboxConstraints
-import tornadofx.checkbox
-import tornadofx.label
-import tornadofx.combobox
-import tornadofx.text
-import tornadofx.paddingTop
-import tornadofx.useMaxWidth
-import tornadofx.button
-import tornadofx.action
-import tornadofx.finally
-import tornadofx.style
-import tornadofx.Controller
-import tornadofx.App
-import tornadofx.launch
+import tornadofx.*
 import kotlin.system.measureTimeMillis
 
 object AppModel {
@@ -59,7 +31,7 @@ object AppModel {
 
     private val defaultWorkingThreads = Runtime.getRuntime().availableProcessors()
     private const val minWorkingThreads = 1
-    private val maxWorkingThreads = Runtime.getRuntime().availableProcessors() * 2
+    private const val maxWorkingThreads = 128
 
     private const val defaultRecursionLimit = 3
     private const val minRecursionLimit = 0
