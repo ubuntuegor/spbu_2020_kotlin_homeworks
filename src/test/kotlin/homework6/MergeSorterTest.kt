@@ -29,16 +29,9 @@ internal class MergeSorterTest {
     }
 
     @MethodSource("sortData")
-    @ParameterizedTest(name = "coroutinesSort - {0}")
-    fun <T : Comparable<Any>> coroutinesSort(expected: List<T>, unsorted: List<T>) {
-        val sorter = CoroutinesMergeSorter<T>(10, 10, true)
-        assertEquals(expected, sorter.sort(unsorted))
-    }
-
-    @MethodSource("sortData")
-    @ParameterizedTest(name = "coroutinesSortSync - {0}")
-    fun <T : Comparable<Any>> coroutinesSortSync(expected: List<T>, unsorted: List<T>) {
-        val sorter = CoroutinesMergeSorter<T>(0, 1, true)
+    @ParameterizedTest(name = "coroutinesSort - {0}  (recursion limit {2})")
+    fun <T : Comparable<Any>> coroutinesSort(expected: List<T>, unsorted: List<T>, recursionLimit: Int) {
+        val sorter = CoroutinesMergeSorter<T>(recursionLimit, true)
         assertEquals(expected, sorter.sort(unsorted))
     }
 }

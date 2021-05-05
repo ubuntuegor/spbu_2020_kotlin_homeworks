@@ -21,7 +21,7 @@ import kotlin.system.measureTimeMillis
 object AppModel {
     private val MODE_DEFAULT = Mode.ByElements
 
-    private const val defaultUseCoroutines = false
+    private const val USE_COROUTINES_DEFAULT = false
     private const val USE_PARALLEL_MERGE_DEFAULT = true
 
     private const val ELEMENT_COUNT_DEFAULT = 50_000
@@ -56,7 +56,7 @@ object AppModel {
     val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
     val selectedMode: Mode by selectedModeProperty
 
-    val useCoroutinesProperty = SimpleBooleanProperty(defaultUseCoroutines)
+    val useCoroutinesProperty = SimpleBooleanProperty(USE_COROUTINES_DEFAULT)
     val useCoroutines by useCoroutinesProperty
 
     val useParallelMergeProperty = SimpleBooleanProperty(USE_PARALLEL_MERGE_DEFAULT)
@@ -87,9 +87,9 @@ object AppModel {
         val graphs = mutableListOf<Graph>().asObservable()
     }
 
-    fun getSorter(recursionLimit: Int, workingThreads: Int, useParallelMerge: Boolean): Sorter<Int> =
-        if (useCoroutines) CoroutinesMergeSorter(recursionLimit, workingThreads, useParallelMerge)
-        else MergeSorter(recursionLimit, workingThreads, useParallelMerge)
+    fun getSorter(recursionLimit: Int): Sorter<Int> =
+        if (useCoroutines) CoroutinesMergeSorter(recursionLimit, useParallelMerge)
+        else MergeSorter(recursionLimit, useParallelMerge)
 }
 
 class MainView : View("Merge Sort Chart") {
@@ -174,7 +174,7 @@ class SettingsView : View() {
             }
 
             vbox {
-                spacing = defaultPadding.toDouble()
+                spacing = DEFAULT_PADDING.toDouble()
                 checkbox("Use coroutines", model.useCoroutinesProperty)
                 checkbox("Use parallel merge", model.useParallelMergeProperty)
             }
@@ -259,11 +259,9 @@ class ChartController : Controller() {
     private val elementsString: String
         get() = "${model.elementCount} elements"
     private val createdThreadsString: String
-        get() = "${model.createdThreads} threads"
+        get() = if (model.useCoroutines) "${model.createdThreads} coroutines" else "${model.createdThreads} threads"
     private val parallelMergeString: String
         get() = if (model.useParallelMerge) "parallel merge" else "normal merge"
-    private val coroutinesString: String
-        get() = if (model.useCoroutines) "coroutines" else "threads"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -273,10 +271,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = (1..size).shuffled()
 
     private fun buildGraphByElements() {
-        val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString, $coroutinesString")
+        val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString")
         chart.graphs.add(chartSeries)
 
-        val sorter = model.getSorter(model.createdThreads.recursionLimit, model.useParallelMerge)
+        val sorter = model.getSorter(model.createdThreads.recursionLimit)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -285,12 +283,12 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, $parallelMergeString, $coroutinesString")
+        val chartSeries = AppModel.Graph("$elementsString, $parallelMergeString")
         chart.graphs.add(chartSeries)
 
         val list = createRandomList(model.elementCount)
         for (createdThreads in model.createdThreadsParameter.range) {
-            val sorter = model.getSorter(createdThreads.recursionLimit, model.useParallelMerge)
+            val sorter = model.getSorter(createdThreads.recursionLimit)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
             chartSeries.data[createdThreads.threads] = elapsedTime
         }

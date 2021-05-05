@@ -5,16 +5,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import java.util.concurrent.Semaphore
 import kotlin.math.max
 
 class CoroutinesMergeSorter<T : Comparable<T>>(
     private val recursionLimit: Int,
-    workingThreads: Int,
     private val useParallelMerge: Boolean
 ) : Sorter<T> {
-    private val semaphore = Semaphore(workingThreads)
-
     private fun searchSplitPosition(list: List<T>, separator: T) =
         list.binarySearch(separator).let { if (it < 0) it.inv() else it }
 
@@ -23,14 +19,11 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
             recursionLimit <= 0 -> syncMerge(list1, list2)
             max(list1.size, list2.size) == 0 -> listOf()
             else -> {
-                val leftList = if (list1.size < list2.size) list2 else list1
-                val rightList = if (list1.size < list2.size) list1 else list2
+                val (leftList, rightList) = if (list1.size < list2.size) list2 to list1 else list1 to list2
                 val result = mutableListOf<T>()
 
-                semaphore.acquireUninterruptibly()
                 val leftListSplit = leftList.size / 2
                 val rightListSplit = searchSplitPosition(rightList, leftList[leftListSplit])
-                semaphore.release()
 
                 val leftHalfCoroutine = async {
                     parallelMerge(
@@ -56,7 +49,6 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
     }
 
     private fun syncMerge(list1: List<T>, list2: List<T>): List<T> {
-        semaphore.acquireUninterruptibly()
         val union = mutableListOf<T>()
         var index1 = 0
         var index2 = 0
@@ -69,7 +61,6 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
                 else -> union.add(list2[index2++])
             }
         }
-        semaphore.release()
         return union
     }
 
