@@ -16,6 +16,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import kotlin.math.pow
 import tornadofx.*
+import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
 object AppModel {
@@ -256,7 +257,7 @@ class ChartController : Controller() {
         chart.graphs.clear()
     }
 
-    private fun createRandomList(size: Int) = (1..size).shuffled()
+    private fun createRandomList(size: Int) = List(size) { Random.nextInt() }
 
     private fun buildGraphByElements() {
         val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString")
