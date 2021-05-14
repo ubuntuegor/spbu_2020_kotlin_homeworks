@@ -2,7 +2,6 @@
 package homework6
 
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
@@ -22,8 +21,6 @@ import kotlin.system.measureTimeMillis
 object AppModel {
     private val MODE_DEFAULT = Mode.ByElements
 
-    private const val USE_PARALLEL_MERGE_DEFAULT = true
-
     private const val ELEMENT_COUNT_DEFAULT = 50_000
     private const val ELEMENT_COUNT_MIN = 1000
     private const val ELEMENT_COUNT_STEP = 1000
@@ -42,12 +39,12 @@ object AppModel {
         }
     }
 
-    open class RangedParameter<T>(val range: List<T>, default: T) {
-        open val property: Property<T> = SimpleObjectProperty(default)
+    open class RangedParameter<T>(val range: List<T>, defaultValue: T) {
+        open val property: Property<T> = SimpleObjectProperty(defaultValue)
     }
 
-    class IntegerRangedParameter(range: List<Int>, default: Int) : RangedParameter<Number>(range, default) {
-        override val property = SimpleIntegerProperty(default)
+    class IntegerRangedParameter(range: List<Int>, defaultValue: Int) : RangedParameter<Number>(range, defaultValue) {
+        override val property = SimpleIntegerProperty(defaultValue)
     }
 
     private val ELEMENT_COUNT_RANGE = (ELEMENT_COUNT_MIN..ELEMENT_COUNT_MAX step ELEMENT_COUNT_STEP).toList()
@@ -55,9 +52,6 @@ object AppModel {
 
     val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
     val selectedMode: Mode by selectedModeProperty
-
-    val useParallelMergeProperty = SimpleBooleanProperty(USE_PARALLEL_MERGE_DEFAULT)
-    val useParallelMerge by useParallelMergeProperty
 
     val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
     val elementCount by elementCountParameter.property
@@ -166,8 +160,6 @@ class SettingsView : View() {
                 vGrow = Priority.ALWAYS
             }
 
-            checkbox("Use parallel merge", model.useParallelMergeProperty)
-
             label("Number of elements:")
             combobox(model.elementCountParameter.property, model.elementCountParameter.range) {
                 disableProperty().bind(disableElementCountProperty)
@@ -249,8 +241,6 @@ class ChartController : Controller() {
         get() = "${model.elementCount} elements"
     private val createdThreadsString: String
         get() = "${model.createdThreads} threads"
-    private val parallelMergeString: String
-        get() = if (model.useParallelMerge) "parallel merge" else "normal merge"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -260,10 +250,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = List(size) { Random.nextInt() }
 
     private fun buildGraphByElements() {
-        val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString")
+        val chartSeries = AppModel.Graph(createdThreadsString)
         chart.graphs.add(chartSeries)
 
-        val sorter = MergeSorter<Int>(model.createdThreads.recursionLimit, model.useParallelMerge)
+        val sorter = MergeSorter<Int>(model.createdThreads.recursionLimit)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -272,12 +262,12 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, $parallelMergeString")
+        val chartSeries = AppModel.Graph(elementsString)
         chart.graphs.add(chartSeries)
 
         val list = createRandomList(model.elementCount)
         for (createdThreads in model.createdThreadsParameter.range) {
-            val sorter = MergeSorter<Int>(createdThreads.recursionLimit, model.useParallelMerge)
+            val sorter = MergeSorter<Int>(createdThreads.recursionLimit)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
             chartSeries.data[createdThreads.threads] = elapsedTime
         }
