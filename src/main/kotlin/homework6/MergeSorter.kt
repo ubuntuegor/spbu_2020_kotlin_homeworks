@@ -103,6 +103,6 @@ class MergeSortRunnable<T : Comparable<T>>(
 }
 
 class MergeSorter<T : Comparable<T>>(private val recursionLimit: Int) : Sorter<T> {
-    fun sort(list: List<T>) =
+    override fun sort(list: List<T>) =
         MergeSortRunnable(list, recursionLimit).also { it.run() }.result
 }

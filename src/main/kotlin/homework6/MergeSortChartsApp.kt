@@ -66,17 +66,6 @@ object AppModel {
         val threads: Int
             get() = (2.0).pow(recursionLimit).toInt()
 
-
-    val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
-    val selectedMode: Mode by selectedModeProperty
-
-    val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
-    val elementCount by elementCountParameter.property
-
-    data class RecursionThreadsWrapper(val recursionLimit: Int) {
-        val threads: Int
-            get() = (2.0).pow(recursionLimit).toInt()
-
         override fun toString() = threads.toString()
     }
 
@@ -96,8 +85,8 @@ object AppModel {
     }
 
     fun getSorter(recursionLimit: Int): Sorter<Int> =
-        if (useCoroutines) CoroutinesMergeSorter(recursionLimit, useParallelMerge)
-        else MergeSorter(recursionLimit, useParallelMerge)
+        if (useCoroutines) CoroutinesMergeSorter(recursionLimit)
+        else MergeSorter(recursionLimit)
 }
 
 class MainView : View("Merge Sort Chart") {
@@ -262,8 +251,10 @@ class ChartController : Controller() {
 
     private val elementsString: String
         get() = "${model.elementCount} elements"
+    private val threadsNameString: String
+        get() = if (model.useCoroutines) "coroutines" else "threads"
     private val createdThreadsString: String
-        get() = if (model.useCoroutines) "${model.createdThreads} coroutines" else "${model.createdThreads} threads"
+        get() = "${model.createdThreads} $threadsNameString"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -276,7 +267,7 @@ class ChartController : Controller() {
         val chartSeries = AppModel.Graph(createdThreadsString)
         chart.graphs.add(chartSeries)
 
-        val sorter = MergeSorter<Int>(model.createdThreads.recursionLimit)
+        val sorter = model.getSorter(model.createdThreads.recursionLimit)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -285,7 +276,7 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph(elementsString)
+        val chartSeries = AppModel.Graph("$elementsString, by $threadsNameString")
         chart.graphs.add(chartSeries)
 
         val list = createRandomList(model.elementCount)

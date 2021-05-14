@@ -7,10 +7,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlin.math.max
 
-class CoroutinesMergeSorter<T : Comparable<T>>(
-    private val recursionLimit: Int,
-    private val useParallelMerge: Boolean
-) : Sorter<T> {
+class CoroutinesMergeSorter<T : Comparable<T>>(private val recursionLimit: Int) : Sorter<T> {
     private fun searchSplitPosition(list: List<T>, separator: T) =
         list.binarySearch(separator).let { if (it < 0) it.inv() else it }
 
@@ -65,8 +62,7 @@ class CoroutinesMergeSorter<T : Comparable<T>>(
     }
 
     private fun merge(list1: List<T>, list2: List<T>, recursionLimit: Int) =
-        if (useParallelMerge) runBlocking { parallelMerge(list1, list2, recursionLimit) }
-        else syncMerge(list1, list2)
+        runBlocking { parallelMerge(list1, list2, recursionLimit) }
 
     private suspend fun mergeSort(list: List<T>, recursionLimit: Int): List<T> = coroutineScope {
         if (list.size <= 1) list
