@@ -23,7 +23,6 @@ object AppModel {
     private val MODE_DEFAULT = Mode.ByElements
 
     private const val USE_COROUTINES_DEFAULT = false
-    private const val USE_PARALLEL_MERGE_DEFAULT = true
 
     private const val ELEMENT_COUNT_DEFAULT = 50_000
     private const val ELEMENT_COUNT_MIN = 1000
@@ -43,12 +42,12 @@ object AppModel {
         }
     }
 
-    open class RangedParameter<T>(val range: List<T>, default: T) {
-        open val property: Property<T> = SimpleObjectProperty(default)
+    open class RangedParameter<T>(val range: List<T>, defaultValue: T) {
+        open val property: Property<T> = SimpleObjectProperty(defaultValue)
     }
 
-    class IntegerRangedParameter(range: List<Int>, default: Int) : RangedParameter<Number>(range, default) {
-        override val property = SimpleIntegerProperty(default)
+    class IntegerRangedParameter(range: List<Int>, defaultValue: Int) : RangedParameter<Number>(range, defaultValue) {
+        override val property = SimpleIntegerProperty(defaultValue)
     }
 
     private val ELEMENT_COUNT_RANGE = (ELEMENT_COUNT_MIN..ELEMENT_COUNT_MAX step ELEMENT_COUNT_STEP).toList()
@@ -60,8 +59,16 @@ object AppModel {
     val useCoroutinesProperty = SimpleBooleanProperty(USE_COROUTINES_DEFAULT)
     val useCoroutines by useCoroutinesProperty
 
-    val useParallelMergeProperty = SimpleBooleanProperty(USE_PARALLEL_MERGE_DEFAULT)
-    val useParallelMerge by useParallelMergeProperty
+    val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
+    val elementCount by elementCountParameter.property
+
+    data class RecursionThreadsWrapper(val recursionLimit: Int) {
+        val threads: Int
+            get() = (2.0).pow(recursionLimit).toInt()
+
+
+    val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
+    val selectedMode: Mode by selectedModeProperty
 
     val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
     val elementCount by elementCountParameter.property
@@ -174,11 +181,7 @@ class SettingsView : View() {
                 vGrow = Priority.ALWAYS
             }
 
-            vbox {
-                spacing = DEFAULT_PADDING.toDouble()
-                checkbox("Use coroutines", model.useCoroutinesProperty)
-                checkbox("Use parallel merge", model.useParallelMergeProperty)
-            }
+            checkbox("Use coroutines", model.useCoroutinesProperty)
 
             label("Number of elements:")
             combobox(model.elementCountParameter.property, model.elementCountParameter.range) {
@@ -261,8 +264,6 @@ class ChartController : Controller() {
         get() = "${model.elementCount} elements"
     private val createdThreadsString: String
         get() = if (model.useCoroutines) "${model.createdThreads} coroutines" else "${model.createdThreads} threads"
-    private val parallelMergeString: String
-        get() = if (model.useParallelMerge) "parallel merge" else "normal merge"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -272,10 +273,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = List(size) { Random.nextInt() }
 
     private fun buildGraphByElements() {
-        val chartSeries = AppModel.Graph("$createdThreadsString, $parallelMergeString")
+        val chartSeries = AppModel.Graph(createdThreadsString)
         chart.graphs.add(chartSeries)
 
-        val sorter = model.getSorter(model.createdThreads.recursionLimit)
+        val sorter = MergeSorter<Int>(model.createdThreads.recursionLimit)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -284,7 +285,7 @@ class ChartController : Controller() {
     }
 
     private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, $parallelMergeString")
+        val chartSeries = AppModel.Graph(elementsString)
         chart.graphs.add(chartSeries)
 
         val list = createRandomList(model.elementCount)

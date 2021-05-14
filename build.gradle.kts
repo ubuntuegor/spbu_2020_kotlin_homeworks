@@ -28,6 +28,9 @@ dependencies {
     implementation("com.squareup:kotlinpoet:1.6.0")
     implementation("no.tornado:tornadofx:1.7.20")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("io.ktor:ktor-client-core:1.5.3")
+    implementation("io.ktor:ktor-client-cio:1.5.3")
+    implementation("io.ktor:ktor-client-serialization:1.5.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
 }

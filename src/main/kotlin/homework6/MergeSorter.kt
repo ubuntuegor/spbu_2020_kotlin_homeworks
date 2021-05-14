@@ -69,8 +69,7 @@ class MergeRunnable<T : Comparable<T>>(
 
 class MergeSortRunnable<T : Comparable<T>>(
     private val list: List<T>,
-    private val recursionLimit: Int,
-    private val useParallelMerge: Boolean
+    private val recursionLimit: Int
 ) : Runnable {
     lateinit var result: List<T>
         private set
@@ -78,8 +77,8 @@ class MergeSortRunnable<T : Comparable<T>>(
     private fun mergeSort(): List<T> {
         if (list.size <= 1) return list
         val mid = list.size / 2
-        val leftHalfRunnable = MergeSortRunnable(list.subList(0, mid), recursionLimit - 1, useParallelMerge)
-        val rightHalfRunnable = MergeSortRunnable(list.subList(mid, list.size), recursionLimit - 1, useParallelMerge)
+        val leftHalfRunnable = MergeSortRunnable(list.subList(0, mid), recursionLimit - 1)
+        val rightHalfRunnable = MergeSortRunnable(list.subList(mid, list.size), recursionLimit - 1)
 
         if (recursionLimit > 0) {
             val leftHalfThread = Thread(leftHalfRunnable)
@@ -94,7 +93,7 @@ class MergeSortRunnable<T : Comparable<T>>(
         return MergeRunnable(
             leftHalfRunnable.result,
             rightHalfRunnable.result,
-            if (useParallelMerge) recursionLimit else 0
+            recursionLimit
         ).also { it.run() }.result
     }
 
@@ -103,10 +102,7 @@ class MergeSortRunnable<T : Comparable<T>>(
     }
 }
 
-class MergeSorter<T : Comparable<T>>(
-    private val recursionLimit: Int,
-    private val useParallelMerge: Boolean
-) : Sorter<T> {
-    override fun sort(list: List<T>) =
-        MergeSortRunnable(list, recursionLimit, useParallelMerge).also { it.run() }.result
+class MergeSorter<T : Comparable<T>>(private val recursionLimit: Int) : Sorter<T> {
+    fun sort(list: List<T>) =
+        MergeSortRunnable(list, recursionLimit).also { it.run() }.result
 }
