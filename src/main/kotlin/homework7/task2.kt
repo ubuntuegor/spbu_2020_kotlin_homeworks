@@ -6,7 +6,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 operator fun List<Int>.times(multiplier: List<Int>): Int {
-    if (this.size != multiplier.size) throw IllegalArgumentException("Cannot multiply lists of different size")
+    require(this.size == multiplier.size) { "Cannot multiply lists of different size" }
     return this.foldIndexed(0) { index, acc, elem -> acc + elem * multiplier[index] }
 }
 
