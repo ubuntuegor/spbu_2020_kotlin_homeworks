@@ -14,13 +14,19 @@ data class Matrix(val matrix: List<List<Int>>) {
     private val width = matrix.firstOrNull()?.size ?: 0
     private val height = if (width != 0) matrix.size else 0
 
-    private val columns = (1..width).map { index -> matrix.map { it[index - 1] } }
+    private val columns: List<List<Int>>
     private val rows = matrix
 
-    suspend operator fun times(multiplier: Matrix) = coroutineScope {
-        if (width != multiplier.height) {
-            throw IllegalArgumentException("Cannot multiply matrix with width $width by matrix with height $height")
+    init {
+        matrix.forEach {
+            require(it.size == width) { "Cannot create a matrix from inconsistently sized lists" }
         }
+
+        columns = (0 until width).map { index -> matrix.map { it[index] } }
+    }
+
+    suspend operator fun times(multiplier: Matrix) = coroutineScope {
+        require(width == multiplier.height) { "Cannot multiply matrix with width $width by matrix with height $height" }
 
         if (height == 0 || multiplier.width == 0) Matrix(listOf())
         else Matrix(
