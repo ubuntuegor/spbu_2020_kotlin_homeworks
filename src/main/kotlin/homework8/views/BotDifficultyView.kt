@@ -15,7 +15,7 @@ import tornadofx.seconds
 import tornadofx.useMaxWidth
 import tornadofx.vbox
 
-class BotDifficultyView : View("Noughts and crosses") {
+class BotDifficultyView : View("Play with a bot") {
     override val root = vbox {
         addClass(Styles.window)
         addClass(Styles.menu)

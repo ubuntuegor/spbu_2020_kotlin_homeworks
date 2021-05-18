@@ -3,6 +3,7 @@ package homework8.controllers
 import homework8.games.DualControlGame
 import homework8.games.Game
 import homework8.games.RandomBotGame
+import homework8.games.StrategicBotGame
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -35,7 +36,7 @@ class GameController : Controller() {
     val player2NameProperty = SimpleStringProperty(
         when (game) {
             is DualControlGame -> "Player 2"
-            is RandomBotGame -> "Bot"
+            is RandomBotGame, is StrategicBotGame -> "Bot"
             else -> "Opponent"
         }
     )

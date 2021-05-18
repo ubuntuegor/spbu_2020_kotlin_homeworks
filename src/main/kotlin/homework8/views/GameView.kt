@@ -27,7 +27,7 @@ import tornadofx.vbox
 import tornadofx.vgrow
 import tornadofx.visibleWhen
 
-class GameView : View("Noughts and crosses") {
+class GameView : View("In game") {
     private val controller: GameController by inject()
     private val gameGridView: GameGridView by inject()
 

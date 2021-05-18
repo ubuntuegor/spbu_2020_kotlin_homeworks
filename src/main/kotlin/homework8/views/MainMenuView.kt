@@ -25,6 +25,7 @@ class MainMenuView : View("Noughts and crosses") {
             isPreserveRatio = true
             fitWidthProperty().bind(imagePane.widthProperty())
         }
+
         button("Play on one computer") {
             useMaxWidth = true
             action {
