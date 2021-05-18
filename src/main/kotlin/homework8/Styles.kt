@@ -2,6 +2,7 @@
 
 package homework8
 
+import javafx.geometry.Pos
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
@@ -15,6 +16,9 @@ import tornadofx.px
 class Styles : Stylesheet() {
     companion object {
         val none by cssclass()
+
+        val window by cssclass()
+        val menu by cssclass()
         val gameView by cssclass()
         val gameViewHeader by cssclass()
 
@@ -31,6 +35,7 @@ class Styles : Stylesheet() {
 
         const val WINDOW_WIDTH = 500.0
         const val WINDOW_HEIGHT = 680.0
+        const val TRANSITION_DURATION = 0.2
 
         val CROSSES_COLOR: Color = Color.web("539FE5")
         val NOUGHTS_COLOR: Color = Color.web("ED5545")
@@ -42,9 +47,10 @@ class Styles : Stylesheet() {
         const val GAME_CELL_BORDER_WIDTH = 2
         const val ANIMATION_DURATION = 0.8
 
-        const val PLAYER_ICON_SIZE = 40.0
-        const val PLAYER_ICON_PADDING = 8.0
-        const val PLAYER_ICON_STROKE_WIDTH = 4.0
+        const val PLAYER_ICON_SIZE = 50.0
+        const val PLAYER_ICON_PADDING = 12.0
+        const val PLAYER_ICON_STROKE_WIDTH = 7.0
+        const val PLAYER_ICON_BORDER_WIDTH = 5.0
 
         fun getFont(weight: FontWeight, size: Double): Font {
             val urls = mapOf(
@@ -63,6 +69,20 @@ class Styles : Stylesheet() {
     init {
         button {
             font = getFont(FontWeight.NORMAL, 14.0)
+        }
+
+        window {
+            backgroundColor += Color.web("fafafa")
+            padding = box(20.px)
+        }
+
+        menu {
+            spacing = 15.px
+            alignment = Pos.CENTER
+
+            label {
+                font = getFont(FontWeight.SEMI_BOLD, 14.0)
+            }
         }
 
         gameCell {
@@ -89,7 +109,6 @@ class Styles : Stylesheet() {
         }
 
         gameView {
-            padding = box(20.px)
             spacing = 20.px
 
             gameViewHeader {
@@ -105,15 +124,16 @@ class Styles : Stylesheet() {
                 }
 
                 playerIcon {
-                    minWidth = 46.px
-                    minHeight = 46.px
-                    maxWidth = 46.px
-                    maxHeight = 46.px
+                    minWidth = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
+                    minHeight = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
+                    maxWidth = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
+                    maxHeight = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
 
                     and(playerIconSelected) {
-                        borderWidth += box(3.px)
-                        borderColor += box(Color.GREEN)
-                        borderRadius += box(25.percent)
+
+                        borderWidth += box(PLAYER_ICON_BORDER_WIDTH.px)
+                        borderColor += box(Color.web("48f179"))
+                        borderRadius += box(50.percent)
                     }
                 }
             }

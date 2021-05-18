@@ -8,43 +8,48 @@ import homework8.graphics.NoughtIcon
 import javafx.beans.binding.Bindings
 import javafx.geometry.Pos
 import javafx.scene.layout.Priority
+import tornadofx.FX
 import tornadofx.View
+import tornadofx.ViewTransition
 import tornadofx.action
 import tornadofx.addClass
 import tornadofx.bindClass
 import tornadofx.button
+import tornadofx.find
 import tornadofx.hbox
 import tornadofx.hgrow
 import tornadofx.label
 import tornadofx.plusAssign
+import tornadofx.seconds
 import tornadofx.stackpane
 import tornadofx.text
 import tornadofx.vbox
 import tornadofx.vgrow
 import tornadofx.visibleWhen
 
-class GameView : View() {
+class GameView : View("Noughts and crosses") {
     private val controller: GameController by inject()
     private val gameGridView: GameGridView by inject()
 
-    private val bind1 =
+    private val player1SelectedObservable =
         Bindings.createObjectBinding(
             {
-                if (controller.turnProperty.value == Game.PlayerPos.PLAYER_1) Styles.playerIconSelected
+                if (controller.turnProperty.value == Game.PlayerId.PLAYER_1) Styles.playerIconSelected
                 else Styles.none
             },
             controller.turnProperty
         )
-    private val bind2 =
+    private val player2SelectedObservable =
         Bindings.createObjectBinding(
             {
-                if (controller.turnProperty.value == Game.PlayerPos.PLAYER_2) Styles.playerIconSelected
+                if (controller.turnProperty.value == Game.PlayerId.PLAYER_2) Styles.playerIconSelected
                 else Styles.none
             },
             controller.turnProperty
         )
 
     override val root = vbox {
+        addClass(Styles.window)
         addClass(Styles.gameView)
 
         vbox {
@@ -53,13 +58,13 @@ class GameView : View() {
             hbox {
                 hbox {
                     hgrow = Priority.ALWAYS
-                    label("You") { addClass(Styles.playerTitle) }
+                    label(controller.player1NameProperty) { addClass(Styles.playerTitle) }
                 }
 
                 hbox {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.TOP_RIGHT
-                    label("Opponent") { addClass(Styles.playerTitle) }
+                    label(controller.player2NameProperty) { addClass(Styles.playerTitle) }
                 }
             }
 
@@ -69,11 +74,11 @@ class GameView : View() {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_LEFT
 
-                    val icon = when (controller.delegate.getMark(Game.PlayerPos.PLAYER_1)) {
+                    val icon = when (controller.delegate.getMark(Game.PlayerId.PLAYER_1)) {
                         Game.Mark.CROSS -> find<CrossIcon>()
                         Game.Mark.NOUGHT -> find<NoughtIcon>()
                     }
-                    icon.root.bindClass(bind1)
+                    icon.root.bindClass(player1SelectedObservable)
 
                     this += icon
 
@@ -84,11 +89,11 @@ class GameView : View() {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_RIGHT
 
-                    val icon = when (controller.delegate.getMark(Game.PlayerPos.PLAYER_2)) {
+                    val icon = when (controller.delegate.getMark(Game.PlayerId.PLAYER_2)) {
                         Game.Mark.CROSS -> find<CrossIcon>()
                         Game.Mark.NOUGHT -> find<NoughtIcon>()
                     }
-                    icon.root.bindClass(bind2)
+                    icon.root.bindClass(player2SelectedObservable)
 
                     text(controller.player2ScoreProperty.asString())
 
@@ -113,7 +118,10 @@ class GameView : View() {
                 alignment = Pos.BOTTOM_CENTER
                 button("Quit") {
                     action {
-                        close()
+                        replaceWith(
+                            find<MainMenuView>(FX.defaultScope),
+                            ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds, ViewTransition.Direction.RIGHT)
+                        )
                     }
                 }
 
@@ -121,7 +129,7 @@ class GameView : View() {
                     hgrow = Priority.ALWAYS
                 }
 
-                button("Restart") {
+                button("Play again") {
                     visibleWhen(controller.enableRestartProperty)
                     action {
                         controller.ready()

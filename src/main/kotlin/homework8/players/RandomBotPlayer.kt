@@ -8,10 +8,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-class BotRandom(override val delegate: Game.Delegate) : Player(delegate) {
+class RandomBotPlayer(override val delegate: Game.Delegate) : Player {
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    override fun onStart() = Unit
 
-    override var onMoveRequested: () -> Unit = {
+    override fun onMoveRequested() {
         coroutineScope.launch {
             delay(THINKING_TIME.toLong())
             var cell: Game.Cell
@@ -22,11 +23,13 @@ class BotRandom(override val delegate: Game.Delegate) : Player(delegate) {
         }
     }
 
-    override var onGameResult: (Game.PlayerPos?) -> Unit = {
+    override fun onMove(cell: Game.Cell, playerId: Game.PlayerId) = Unit
+
+    override fun onGameResult(winner: Game.PlayerId?) {
         delegate.ready()
     }
 
-    override var onOpponentLeft: () -> Unit = {
+    override fun onOpponentLeft() {
         coroutineScope.cancel()
     }
 

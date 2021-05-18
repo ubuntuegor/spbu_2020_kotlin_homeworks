@@ -7,7 +7,7 @@ abstract class Game {
         CROSS, NOUGHT
     }
 
-    enum class PlayerPos {
+    enum class PlayerId {
         PLAYER_1, PLAYER_2;
 
         fun other() = when (this) {
@@ -19,11 +19,11 @@ abstract class Game {
     data class Cell(val x: Int, val y: Int)
 
     class Field(val size: Int) {
-        val grid = MutableList(size) { MutableList<PlayerPos?>(size) { null } }
+        val grid = MutableList(size) { MutableList<PlayerId?>(size) { null } }
 
         fun getCell(cell: Cell) = grid[cell.y][cell.x]
-        fun setCell(cell: Cell, playerPos: PlayerPos) {
-            grid[cell.y][cell.x] = playerPos
+        fun setCell(cell: Cell, playerId: PlayerId) {
+            grid[cell.y][cell.x] = playerId
         }
 
         fun clear() {
@@ -32,19 +32,19 @@ abstract class Game {
 
         fun isFilled() = grid.flatten().all { it != null }
 
-        private fun checkWinnerInRow(i: Int): PlayerPos? {
+        private fun checkWinnerInRow(i: Int): PlayerId? {
             val set = grid[i].toSet()
             return if (set.size == 1) set.first()
             else null
         }
 
-        private fun checkWinnerInColumn(i: Int): PlayerPos? {
+        private fun checkWinnerInColumn(i: Int): PlayerId? {
             val set = grid.map { it[i] }.toSet()
             return if (set.size == 1) set.first()
             else null
         }
 
-        private fun checkWinnerInDiagonals(): PlayerPos? {
+        private fun checkWinnerInDiagonals(): PlayerId? {
             val set1 = grid.mapIndexed { i, l -> l[i] }.toSet()
             val set2 = grid.mapIndexed { i, l -> l[size - 1 - i] }.toSet()
             return if (set1.size == 1 && set1.first() != null) set1.first()
@@ -63,7 +63,7 @@ abstract class Game {
         var score = 0
     }
 
-    class Delegate(private val game: Game, private val playerPos: PlayerPos) {
+    class Delegate(private val game: Game, val playerId: PlayerId) {
         val field
             get() = game.field.grid.map { it.toList() }
         val size
@@ -71,32 +71,32 @@ abstract class Game {
         val turn
             get() = game.turn
 
-        fun getMark(playerPos: PlayerPos) = with(game) { playerPos.toPlayerData().mark }
-        fun getScore(playerPos: PlayerPos) = with(game) { playerPos.toPlayerData().score }
+        fun getMark(playerId: PlayerId) = with(game) { playerId.toPlayerData().mark }
+        fun getScore(playerId: PlayerId) = with(game) { playerId.toPlayerData().score }
 
-        fun ready() = game.onReady(playerPos)
-        fun makeMove(cell: Cell) = game.onMakeMove(playerPos, cell)
-        fun quit() = game.onQuit(playerPos)
+        fun ready() = game.onReady(playerId)
+        fun makeMove(cell: Cell) = game.onMakeMove(playerId, cell)
+        fun quit() = game.onQuit(playerId)
     }
 
     private val field = Field(size)
 
     private var ended = false
-    private var turn = PlayerPos.PLAYER_1
+    private var turn = PlayerId.PLAYER_1
 
-    abstract val player1: Player
-    abstract val player2: Player
+    protected abstract val player1: Player
+    protected abstract val player2: Player
     private val player1Data = PlayerData(Mark.CROSS)
     private val player2Data = PlayerData(Mark.NOUGHT)
 
-    private fun PlayerPos.toPlayer() = when (this) {
-        PlayerPos.PLAYER_1 -> player1
-        PlayerPos.PLAYER_2 -> player2
+    private fun PlayerId.toPlayer() = when (this) {
+        PlayerId.PLAYER_1 -> player1
+        PlayerId.PLAYER_2 -> player2
     }
 
-    private fun PlayerPos.toPlayerData() = when (this) {
-        PlayerPos.PLAYER_1 -> player1Data
-        PlayerPos.PLAYER_2 -> player2Data
+    private fun PlayerId.toPlayerData() = when (this) {
+        PlayerId.PLAYER_1 -> player1Data
+        PlayerId.PLAYER_2 -> player2Data
     }
 
     private fun start() {
@@ -106,8 +106,8 @@ abstract class Game {
         turn.toPlayer().onMoveRequested()
     }
 
-    private fun onReady(playerPos: PlayerPos) {
-        playerPos.toPlayerData().ready = true
+    private fun onReady(playerId: PlayerId) {
+        playerId.toPlayerData().ready = true
         if (player1Data.ready && player2Data.ready) {
             start()
             player1Data.ready = false
@@ -115,14 +115,16 @@ abstract class Game {
         }
     }
 
-    private fun onMakeMove(playerPos: PlayerPos, cell: Cell) {
-        if (ended || playerPos != turn) return
-        if (field.getCell(cell) != null) playerPos.toPlayer().onMoveRequested()
+    private fun onMakeMove(playerId: PlayerId, cell: Cell) {
+        if (ended || playerId != turn) return
+        if (field.getCell(cell) != null) playerId.toPlayer().onMoveRequested()
         else {
-            field.setCell(cell, playerPos)
-            playerPos.other().toPlayer().onOpponentMove(cell, playerPos)
+            field.setCell(cell, playerId)
 
-            turn = playerPos.other()
+            turn = playerId.other()
+
+            player1.onMove(cell, playerId)
+            player2.onMove(cell, playerId)
 
             val winner = field.checkWinner()
             when {
@@ -140,9 +142,9 @@ abstract class Game {
         }
     }
 
-    private fun onQuit(playerPos: PlayerPos) {
+    private fun onQuit(playerId: PlayerId) {
         ended = true
-        playerPos.other().toPlayer().onOpponentLeft()
+        playerId.other().toPlayer().onOpponentLeft()
     }
 
     companion object {
