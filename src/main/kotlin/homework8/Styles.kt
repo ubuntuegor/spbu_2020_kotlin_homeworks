@@ -50,7 +50,7 @@ class Styles : Stylesheet() {
         const val PLAYER_ICON_SIZE = 50.0
         const val PLAYER_ICON_PADDING = 12.0
         const val PLAYER_ICON_STROKE_WIDTH = 7.0
-        const val PLAYER_ICON_BORDER_WIDTH = 5.0
+        const val PLAYER_ICON_BORDER_WIDTH = 4.0
 
         fun getFont(weight: FontWeight, size: Double): Font {
             val urls = mapOf(
@@ -132,8 +132,8 @@ class Styles : Stylesheet() {
                     and(playerIconSelected) {
 
                         borderWidth += box(PLAYER_ICON_BORDER_WIDTH.px)
-                        borderColor += box(Color.web("48f179"))
-                        borderRadius += box(50.percent)
+                        borderColor += box(Color.web("333333"))
+                        borderRadius += box(30.percent)
                     }
                 }
             }
