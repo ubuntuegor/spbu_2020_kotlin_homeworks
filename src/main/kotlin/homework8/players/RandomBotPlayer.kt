@@ -23,7 +23,7 @@ class RandomBotPlayer(override val delegate: Game.Delegate) : Player {
         }
     }
 
-    override fun onMove(cell: Game.Cell, playerId: Game.PlayerId) = Unit
+    override fun onOpponentMove(cell: Game.Cell) = Unit
 
     override fun onGameResult(winner: Game.PlayerId?) {
         delegate.ready()

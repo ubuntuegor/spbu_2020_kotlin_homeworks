@@ -14,6 +14,7 @@ import tornadofx.ViewTransition
 import tornadofx.action
 import tornadofx.addClass
 import tornadofx.bindClass
+import tornadofx.booleanBinding
 import tornadofx.button
 import tornadofx.find
 import tornadofx.hbox
@@ -22,6 +23,7 @@ import tornadofx.label
 import tornadofx.plusAssign
 import tornadofx.seconds
 import tornadofx.stackpane
+import tornadofx.stringBinding
 import tornadofx.text
 import tornadofx.vbox
 import tornadofx.vgrow
@@ -34,18 +36,18 @@ class GameView : View("In game") {
     private val player1SelectedObservable =
         Bindings.createObjectBinding(
             {
-                if (controller.turnProperty.value == Game.PlayerId.PLAYER_1) Styles.playerIconSelected
+                if (controller.stateProperty.value == GameController.State.PLAYER_1_MOVE) Styles.playerIconSelected
                 else Styles.none
             },
-            controller.turnProperty
+            controller.stateProperty
         )
     private val player2SelectedObservable =
         Bindings.createObjectBinding(
             {
-                if (controller.turnProperty.value == Game.PlayerId.PLAYER_2) Styles.playerIconSelected
+                if (controller.stateProperty.value == GameController.State.PLAYER_2_MOVE) Styles.playerIconSelected
                 else Styles.none
             },
-            controller.turnProperty
+            controller.stateProperty
         )
 
     override val root = vbox {
@@ -56,15 +58,17 @@ class GameView : View("In game") {
             addClass(Styles.gameViewHeader)
 
             hbox {
+                addClass(Styles.playerTitle)
+
                 hbox {
                     hgrow = Priority.ALWAYS
-                    label(controller.player1NameProperty) { addClass(Styles.playerTitle) }
+                    label(controller.player1NameProperty)
                 }
 
                 hbox {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.TOP_RIGHT
-                    label(controller.player2NameProperty) { addClass(Styles.playerTitle) }
+                    label(controller.player2NameProperty)
                 }
             }
 
@@ -111,7 +115,16 @@ class GameView : View("In game") {
             vbox {
                 addClass(Styles.messageLabel)
                 alignment = Pos.BOTTOM_CENTER
-                label(controller.messageProperty)
+                label(controller.stateProperty.stringBinding {
+                    when (it) {
+                        GameController.State.READY -> "Waiting for opponent..."
+                        GameController.State.NOUGHTS_WON -> "Noughts won!"
+                        GameController.State.CROSSES_WON -> "Crosses won!"
+                        GameController.State.TIE -> "It's a tie!"
+                        GameController.State.ENDED -> "Opponent has left."
+                        else -> null
+                    }
+                })
             }
 
             hbox {
@@ -130,7 +143,13 @@ class GameView : View("In game") {
                 }
 
                 button("Play again") {
-                    visibleWhen(controller.enableRestartProperty)
+                    visibleWhen(controller.stateProperty.booleanBinding {
+                        it in listOf(
+                            GameController.State.CROSSES_WON,
+                            GameController.State.NOUGHTS_WON,
+                            GameController.State.TIE
+                        )
+                    })
                     action {
                         controller.ready()
                     }

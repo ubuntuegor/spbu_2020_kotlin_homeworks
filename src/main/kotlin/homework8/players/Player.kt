@@ -6,7 +6,7 @@ interface Player {
     val delegate: Game.Delegate
     fun onStart()
     fun onMoveRequested()
-    fun onMove(cell: Game.Cell, playerId: Game.PlayerId)
+    fun onOpponentMove(cell: Game.Cell)
     fun onGameResult(winner: Game.PlayerId?)
     fun onOpponentLeft()
 }

@@ -79,7 +79,7 @@ abstract class Game {
         fun quit() = game.onQuit(playerId)
     }
 
-    private val field = Field(size)
+    private val field = Field(SIZE)
 
     private var ended = false
     private var turn = PlayerId.PLAYER_1
@@ -123,8 +123,7 @@ abstract class Game {
 
             turn = playerId.other()
 
-            player1.onMove(cell, playerId)
-            player2.onMove(cell, playerId)
+            turn.toPlayer().onOpponentMove(cell)
 
             val winner = field.checkWinner()
             when {
@@ -148,6 +147,6 @@ abstract class Game {
     }
 
     companion object {
-        private const val size = 3
+        private const val SIZE = 3
     }
 }

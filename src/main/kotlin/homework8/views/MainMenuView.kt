@@ -15,7 +15,7 @@ import tornadofx.stackpane
 import tornadofx.useMaxWidth
 import tornadofx.vbox
 
-class MainMenuView : View("Noughts and crosses") {
+class MainMenuView : View("Main menu") {
     override val root = vbox {
         addClass(Styles.window)
         addClass(Styles.menu)

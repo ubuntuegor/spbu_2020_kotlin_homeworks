@@ -1,41 +1,42 @@
 package homework8.controllers
 
-import homework8.games.DualControlGame
+import homework8.games.TwoControlledPlayersGame
 import homework8.games.Game
 import homework8.games.RandomBotGame
 import homework8.games.StrategicBotGame
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.Controller
-import tornadofx.getValue
+import tornadofx.booleanBinding
 import tornadofx.runLater
-import tornadofx.setValue
 
 class GameController : Controller() {
-    private val game = (scope as GameScope).game
+    enum class State {
+        READY, PLAYER_1_MOVE, PLAYER_2_MOVE, NOUGHTS_WON, CROSSES_WON, TIE, ENDED
+    }
 
+    private val game = (scope as GameScope).game
     private val player = game.controlledPlayer1
     val delegate = game.controlledPlayer1.delegate
 
     val localField =
         List(delegate.size) { List(delegate.size) { SimpleObjectProperty<Game.Mark>() } }
 
-    val messageProperty = SimpleStringProperty("Waiting for opponent")
-    private var message: String by messageProperty
-    val disableFieldProperty = SimpleBooleanProperty(false)
-    val enableRestartProperty = SimpleBooleanProperty(false)
-    val turnProperty = SimpleObjectProperty(delegate.turn)
+    val stateProperty = SimpleObjectProperty(State.READY)
+    val enableFieldProperty = stateProperty.booleanBinding {
+        it == State.PLAYER_1_MOVE || (game is TwoControlledPlayersGame && it == State.PLAYER_2_MOVE)
+    }
+
     val player1NameProperty = SimpleStringProperty(
         when (game) {
-            is DualControlGame -> "Player 1"
+            is TwoControlledPlayersGame -> "Player 1"
             else -> "You"
         }
     )
     val player2NameProperty = SimpleStringProperty(
         when (game) {
-            is DualControlGame -> "Player 2"
+            is TwoControlledPlayersGame -> "Player 2"
             is RandomBotGame, is StrategicBotGame -> "Bot"
             else -> "Opponent"
         }
@@ -47,43 +48,38 @@ class GameController : Controller() {
         player.init(onStart = {
             runLater {
                 clearLocalField()
-                messageProperty.set("")
-                if (game is DualControlGame || delegate.turn == delegate.playerId) disableFieldProperty.set(false)
-                enableRestartProperty.set(false)
-                turnProperty.set(delegate.turn)
+                stateProperty.set(
+                    when (delegate.turn) {
+                        Game.PlayerId.PLAYER_1 -> State.PLAYER_1_MOVE
+                        Game.PlayerId.PLAYER_2 -> State.PLAYER_2_MOVE
+                    }
+                )
             }
         }, onMoveRequested = {
             runLater {
-                if (game !is DualControlGame) {
-                    disableFieldProperty.set(false)
-                }
+                stateProperty.set(State.PLAYER_1_MOVE)
             }
-        }, onMove = { cell, playerPos ->
+        }, onOpponentMove = { cell ->
             runLater {
-                localField[cell.y][cell.x].set(playerPos.toMark())
-                turnProperty.set(delegate.turn)
+                localField[cell.y][cell.x].set(delegate.playerId.other().toMark())
             }
         }, onGameResult = { winner ->
             runLater {
-                message = when (winner?.toMark()) {
-                    null -> "It's a tie!"
-                    Game.Mark.CROSS -> "Crosses won!"
-                    Game.Mark.NOUGHT -> "Noughts won!"
+                when (winner?.toMark()) {
+                    null -> stateProperty.set(State.TIE)
+                    Game.Mark.CROSS -> stateProperty.set(State.CROSSES_WON)
+                    Game.Mark.NOUGHT -> stateProperty.set(State.NOUGHTS_WON)
                 }
                 player1ScoreProperty.set(delegate.getScore(delegate.playerId))
                 player2ScoreProperty.set(delegate.getScore(delegate.playerId.other()))
-                disableFieldProperty.set(true)
-                enableRestartProperty.set(true)
             }
         }, onOpponentLeft = {
             runLater {
-                message = "Opponent left the game."
-                disableFieldProperty.set(true)
-                enableRestartProperty.set(false)
+                stateProperty.set(State.ENDED)
             }
         })
 
-        if (game is DualControlGame) game.controlledPlayer2.init()
+        if (game is TwoControlledPlayersGame) game.controlledPlayer2.init()
 
         ready()
     }
@@ -95,26 +91,34 @@ class GameController : Controller() {
     }
 
     fun ready() {
+        stateProperty.set(State.READY)
         delegate.ready()
-        if (game is DualControlGame) {
-            game.controlledPlayer2.delegate.ready()
-        }
+        if (game is TwoControlledPlayersGame) game.controlledPlayer2.delegate.ready()
     }
 
     fun makeMove(cell: Game.Cell) {
         if (delegate.field[cell.y][cell.x] != null) return
-        if (game is DualControlGame) {
+        if (game is TwoControlledPlayersGame) {
+            localField[cell.y][cell.x].set(delegate.turn.toMark())
+            stateProperty.set(
+                when (delegate.turn) {
+                    Game.PlayerId.PLAYER_1 -> State.PLAYER_2_MOVE
+                    Game.PlayerId.PLAYER_2 -> State.PLAYER_1_MOVE
+                }
+            )
             when (delegate.turn) {
                 Game.PlayerId.PLAYER_1 -> game.controlledPlayer1
                 Game.PlayerId.PLAYER_2 -> game.controlledPlayer2
             }.delegate.makeMove(cell)
         } else {
-            disableFieldProperty.set(true)
+            localField[cell.y][cell.x].set(delegate.playerId.toMark())
+            stateProperty.set(State.PLAYER_2_MOVE)
             delegate.makeMove(cell)
         }
     }
 
     fun quit() {
+        stateProperty.set(State.ENDED)
         delegate.quit()
     }
 }

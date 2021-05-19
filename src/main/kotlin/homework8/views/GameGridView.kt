@@ -17,7 +17,7 @@ class GameGridView : View() {
 
     override val root = gridpane {
         alignment = Pos.CENTER
-        enableWhen(controller.disableFieldProperty.not())
+        enableWhen(controller.enableFieldProperty)
     }
 
     init {
