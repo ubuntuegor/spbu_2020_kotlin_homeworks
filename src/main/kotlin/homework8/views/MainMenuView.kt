@@ -1,7 +1,7 @@
 package homework8.views
 
 import homework8.Styles
-import homework8.controllers.GameScope
+import homework8.controllers.GameViewScope
 import homework8.games.HotSeatGame
 import tornadofx.View
 import tornadofx.ViewTransition
@@ -29,7 +29,8 @@ class MainMenuView : View("Main menu") {
         button("Play on one computer") {
             useMaxWidth = true
             action {
-                val scope = GameScope(HotSeatGame())
+                val game = HotSeatGame()
+                val scope = GameViewScope(game.controlledPlayer1, game.controlledPlayer2)
                 replaceWith(find<GameView>(scope), ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds))
             }
         }

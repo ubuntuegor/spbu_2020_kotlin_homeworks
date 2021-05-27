@@ -1,8 +1,8 @@
 package homework8.views
 
-import homework8.games.Game
 import homework8.controllers.GameController
 import homework8.Styles
+import homework8.games.basic.Cell
 import javafx.geometry.Pos
 import tornadofx.View
 import tornadofx.addClass
@@ -21,7 +21,7 @@ class GameGridView : View() {
     }
 
     init {
-        val gameSize = controller.delegate.size
+        val gameSize = controller.delegate.fieldSize
         with(root) {
             repeat(gameSize) { y ->
                 row {
@@ -32,7 +32,7 @@ class GameGridView : View() {
                             if (x == 0) this.root.addClass(Styles.firstColumnCell)
                             if (y == 0) this.root.addClass(Styles.firstRowCell)
                             this.root.onLeftClick {
-                                controller.makeMove(Game.Cell(x, y))
+                                controller.makeMove(Cell(x, y))
                             }
                         }
 

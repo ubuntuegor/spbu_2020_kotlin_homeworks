@@ -1,7 +1,7 @@
 package homework8.views
 
-import homework8.games.Game
 import homework8.Styles
+import homework8.games.basic.Mark
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.Fragment
 import tornadofx.addClass
@@ -14,8 +14,8 @@ import tornadofx.setValue
 import tornadofx.stackpane
 
 class GameCellFragment : Fragment() {
-    val markProperty: SimpleObjectProperty<Game.Mark> by param()
-    private var mark: Game.Mark? by markProperty
+    val markProperty: SimpleObjectProperty<Mark> by param()
+    private var mark: Mark? by markProperty
 
     override var root = stackpane {
         addClass(Styles.gameCell)
@@ -26,8 +26,8 @@ class GameCellFragment : Fragment() {
         markProperty.onChange {
             root.clear()
             when (mark) {
-                Game.Mark.CROSS -> root += find<homework8.graphics.AnimatedCross>()
-                Game.Mark.NOUGHT -> root += find<homework8.graphics.AnimatedNought>()
+                Mark.CROSS -> root += find<homework8.graphics.AnimatedCross>()
+                Mark.NOUGHT -> root += find<homework8.graphics.AnimatedNought>()
                 null -> {
                 }
             }

@@ -1,7 +1,7 @@
 package homework8.views
 
 import homework8.Styles
-import homework8.controllers.GameScope
+import homework8.controllers.GameViewScope
 import homework8.games.RandomBotGame
 import homework8.games.StrategicBotGame
 import tornadofx.View
@@ -25,7 +25,8 @@ class BotDifficultyView : View("Play with a bot") {
         button("Easy") {
             useMaxWidth = true
             action {
-                val scope = GameScope(RandomBotGame())
+                val game = RandomBotGame()
+                val scope = GameViewScope(game.controlledPlayer1)
                 replaceWith(find<GameView>(scope), ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds))
             }
         }
@@ -33,7 +34,8 @@ class BotDifficultyView : View("Play with a bot") {
         button("Medium") {
             useMaxWidth = true
             action {
-                val scope = GameScope(StrategicBotGame())
+                val game = StrategicBotGame()
+                val scope = GameViewScope(game.controlledPlayer1)
                 replaceWith(find<GameView>(scope), ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds))
             }
         }

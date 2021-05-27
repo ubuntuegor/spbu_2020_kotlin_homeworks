@@ -2,7 +2,8 @@ package homework8.views
 
 import homework8.Styles
 import homework8.controllers.GameController
-import homework8.games.Game
+import homework8.games.basic.Mark
+import homework8.games.basic.PlayerId
 import homework8.graphics.CrossIcon
 import homework8.graphics.NoughtIcon
 import javafx.beans.binding.Bindings
@@ -33,6 +34,9 @@ class GameView : View("In game") {
     private val controller: GameController by inject()
     private val gameGridView: GameGridView by inject()
 
+    private val player1Data = controller.delegate.getPlayerData(PlayerId.PLAYER_1)
+    private val player2Data = controller.delegate.getPlayerData(PlayerId.PLAYER_2)
+
     private val player1SelectedObservable =
         Bindings.createObjectBinding(
             {
@@ -62,13 +66,13 @@ class GameView : View("In game") {
 
                 hbox {
                     hgrow = Priority.ALWAYS
-                    label(controller.player1NameProperty)
+                    label(player1Data.name)
                 }
 
                 hbox {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.TOP_RIGHT
-                    label(controller.player2NameProperty)
+                    label(player2Data.name)
                 }
             }
 
@@ -78,9 +82,9 @@ class GameView : View("In game") {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_LEFT
 
-                    val icon = when (controller.delegate.getMark(Game.PlayerId.PLAYER_1)) {
-                        Game.Mark.CROSS -> find<CrossIcon>()
-                        Game.Mark.NOUGHT -> find<NoughtIcon>()
+                    val icon = when (player1Data.mark) {
+                        Mark.CROSS -> find<CrossIcon>()
+                        Mark.NOUGHT -> find<NoughtIcon>()
                     }
                     icon.root.bindClass(player1SelectedObservable)
 
@@ -93,9 +97,9 @@ class GameView : View("In game") {
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_RIGHT
 
-                    val icon = when (controller.delegate.getMark(Game.PlayerId.PLAYER_2)) {
-                        Game.Mark.CROSS -> find<CrossIcon>()
-                        Game.Mark.NOUGHT -> find<NoughtIcon>()
+                    val icon = when (player2Data.mark) {
+                        Mark.CROSS -> find<CrossIcon>()
+                        Mark.NOUGHT -> find<NoughtIcon>()
                     }
                     icon.root.bindClass(player2SelectedObservable)
 
@@ -115,16 +119,7 @@ class GameView : View("In game") {
             vbox {
                 addClass(Styles.messageLabel)
                 alignment = Pos.BOTTOM_CENTER
-                label(controller.stateProperty.stringBinding {
-                    when (it) {
-                        GameController.State.READY -> "Waiting for opponent..."
-                        GameController.State.NOUGHTS_WON -> "Noughts won!"
-                        GameController.State.CROSSES_WON -> "Crosses won!"
-                        GameController.State.TIE -> "It's a tie!"
-                        GameController.State.ENDED -> "Opponent has left."
-                        else -> null
-                    }
-                })
+                label(controller.stateProperty.stringBinding { it?.message })
             }
 
             hbox {
@@ -156,10 +151,5 @@ class GameView : View("In game") {
                 }
             }
         }
-    }
-
-    override fun onUndock() {
-        controller.quit()
-        super.onUndock()
     }
 }

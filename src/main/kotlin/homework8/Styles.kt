@@ -50,7 +50,6 @@ class Styles : Stylesheet() {
         const val PLAYER_ICON_SIZE = 50.0
         const val PLAYER_ICON_PADDING = 12.0
         const val PLAYER_ICON_STROKE_WIDTH = 7.0
-        const val PLAYER_ICON_BORDER_WIDTH = 4.0
 
         fun getFont(weight: FontWeight, size: Double): Font {
             val urls = mapOf(
@@ -124,16 +123,17 @@ class Styles : Stylesheet() {
                 }
 
                 playerIcon {
-                    minWidth = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
-                    minHeight = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
-                    maxWidth = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
-                    maxHeight = (PLAYER_ICON_SIZE + PLAYER_ICON_BORDER_WIDTH * 2).px
+                    minWidth = PLAYER_ICON_SIZE.px
+                    minHeight = PLAYER_ICON_SIZE.px
+                    maxWidth = PLAYER_ICON_SIZE.px
+                    maxHeight = PLAYER_ICON_SIZE.px
 
                     and(playerIconSelected) {
-
-                        borderWidth += box(PLAYER_ICON_BORDER_WIDTH.px)
-                        borderColor += box(Color.web("333333"))
+                        backgroundColor += Color.web("e6e6e6")
+                        backgroundRadius += box(30.percent)
+                        borderWidth += box(1.px)
                         borderRadius += box(30.percent)
+                        borderColor += box(Color.web("bebebe"))
                     }
                 }
             }

@@ -1,57 +1,47 @@
 package homework8.controllers
 
-import homework8.games.TwoControlledPlayersGame
-import homework8.games.Game
-import homework8.games.RandomBotGame
-import homework8.games.StrategicBotGame
+import homework8.games.basic.Cell
+import homework8.games.basic.Mark
+import homework8.games.basic.PlayerId
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import tornadofx.Controller
 import tornadofx.booleanBinding
 import tornadofx.runLater
 
 class GameController : Controller() {
-    enum class State {
-        READY, PLAYER_1_MOVE, PLAYER_2_MOVE, NOUGHTS_WON, CROSSES_WON, TIE, ENDED
+    override val scope = super.scope as GameViewScope
+
+    enum class State(val message: String? = null) {
+        READY("Waiting for opponent..."),
+        PLAYER_1_MOVE,
+        PLAYER_2_MOVE,
+        NOUGHTS_WON("Noughts won!"),
+        CROSSES_WON("Crosses won!"),
+        TIE("It's a tie!"),
+        ENDED("Opponent has left.")
     }
 
-    private val game = (scope as GameScope).game
-    private val player = game.controlledPlayer1
-    val delegate = game.controlledPlayer1.delegate
+    val delegate = scope.player1.delegate
 
-    val localField =
-        List(delegate.size) { List(delegate.size) { SimpleObjectProperty<Game.Mark>() } }
+    val localField = List(delegate.fieldSize) { List(delegate.fieldSize) { SimpleObjectProperty<Mark>() } }
 
     val stateProperty = SimpleObjectProperty(State.READY)
     val enableFieldProperty = stateProperty.booleanBinding {
-        it == State.PLAYER_1_MOVE || (game is TwoControlledPlayersGame && it == State.PLAYER_2_MOVE)
+        it == State.PLAYER_1_MOVE || (scope.player2 != null && it == State.PLAYER_2_MOVE)
     }
 
-    val player1NameProperty = SimpleStringProperty(
-        when (game) {
-            is TwoControlledPlayersGame -> "Player 1"
-            else -> "You"
-        }
-    )
-    val player2NameProperty = SimpleStringProperty(
-        when (game) {
-            is TwoControlledPlayersGame -> "Player 2"
-            is RandomBotGame, is StrategicBotGame -> "Bot"
-            else -> "Opponent"
-        }
-    )
     val player1ScoreProperty = SimpleIntegerProperty(0)
     val player2ScoreProperty = SimpleIntegerProperty(0)
 
     init {
-        player.init(onStart = {
+        scope.player1.init(onStart = {
             runLater {
                 clearLocalField()
                 stateProperty.set(
                     when (delegate.turn) {
-                        Game.PlayerId.PLAYER_1 -> State.PLAYER_1_MOVE
-                        Game.PlayerId.PLAYER_2 -> State.PLAYER_2_MOVE
+                        PlayerId.PLAYER_1 -> State.PLAYER_1_MOVE
+                        PlayerId.PLAYER_2 -> State.PLAYER_2_MOVE
                     }
                 )
             }
@@ -65,13 +55,14 @@ class GameController : Controller() {
             }
         }, onGameResult = { winner ->
             runLater {
+                if (winner != null) winner.toScore().value++
                 when (winner?.toMark()) {
                     null -> stateProperty.set(State.TIE)
-                    Game.Mark.CROSS -> stateProperty.set(State.CROSSES_WON)
-                    Game.Mark.NOUGHT -> stateProperty.set(State.NOUGHTS_WON)
+                    Mark.CROSS -> {
+                        stateProperty.set(State.CROSSES_WON)
+                    }
+                    Mark.NOUGHT -> stateProperty.set(State.NOUGHTS_WON)
                 }
-                player1ScoreProperty.set(delegate.getScore(delegate.playerId))
-                player2ScoreProperty.set(delegate.getScore(delegate.playerId.other()))
             }
         }, onOpponentLeft = {
             runLater {
@@ -79,12 +70,16 @@ class GameController : Controller() {
             }
         })
 
-        if (game is TwoControlledPlayersGame) game.controlledPlayer2.init()
+        scope.player2?.init()
 
         ready()
     }
 
-    private fun Game.PlayerId.toMark() = delegate.getMark(this)
+    private fun PlayerId.toMark() = delegate.getPlayerData(this).mark
+    private fun PlayerId.toScore() = when (this) {
+        PlayerId.PLAYER_1 -> player1ScoreProperty
+        PlayerId.PLAYER_2 -> player2ScoreProperty
+    }
 
     private fun clearLocalField() {
         localField.forEach { it.forEachIndexed { i, _ -> it[i].set(null) } }
@@ -93,32 +88,27 @@ class GameController : Controller() {
     fun ready() {
         stateProperty.set(State.READY)
         delegate.ready()
-        if (game is TwoControlledPlayersGame) game.controlledPlayer2.delegate.ready()
+        scope.player2?.delegate?.ready()
     }
 
-    fun makeMove(cell: Game.Cell) {
+    fun makeMove(cell: Cell) {
         if (delegate.field[cell.y][cell.x] != null) return
-        if (game is TwoControlledPlayersGame) {
+        if (scope.player2 != null) {
             localField[cell.y][cell.x].set(delegate.turn.toMark())
             stateProperty.set(
                 when (delegate.turn) {
-                    Game.PlayerId.PLAYER_1 -> State.PLAYER_2_MOVE
-                    Game.PlayerId.PLAYER_2 -> State.PLAYER_1_MOVE
+                    PlayerId.PLAYER_1 -> State.PLAYER_2_MOVE
+                    PlayerId.PLAYER_2 -> State.PLAYER_1_MOVE
                 }
             )
             when (delegate.turn) {
-                Game.PlayerId.PLAYER_1 -> game.controlledPlayer1
-                Game.PlayerId.PLAYER_2 -> game.controlledPlayer2
+                PlayerId.PLAYER_1 -> scope.player1
+                PlayerId.PLAYER_2 -> scope.player2
             }.delegate.makeMove(cell)
         } else {
             localField[cell.y][cell.x].set(delegate.playerId.toMark())
             stateProperty.set(State.PLAYER_2_MOVE)
             delegate.makeMove(cell)
         }
-    }
-
-    fun quit() {
-        stateProperty.set(State.ENDED)
-        delegate.quit()
     }
 }

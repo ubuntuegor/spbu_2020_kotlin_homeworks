@@ -1,6 +1,8 @@
 package homework8.players
 
-import homework8.games.Game
+import homework8.games.basic.Cell
+import homework8.games.basic.Game
+import homework8.games.basic.PlayerId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -15,17 +17,17 @@ class RandomBotPlayer(override val delegate: Game.Delegate) : Player {
     override fun onMoveRequested() {
         coroutineScope.launch {
             delay(THINKING_TIME.toLong())
-            var cell: Game.Cell
+            var cell: Cell
             do {
-                cell = Game.Cell(Random.nextInt(0, delegate.size), Random.nextInt(0, delegate.size))
+                cell = Cell(Random.nextInt(0, delegate.fieldSize), Random.nextInt(0, delegate.fieldSize))
             } while (delegate.field[cell.y][cell.x] != null)
             delegate.makeMove(cell)
         }
     }
 
-    override fun onOpponentMove(cell: Game.Cell) = Unit
+    override fun onOpponentMove(cell: Cell) = Unit
 
-    override fun onGameResult(winner: Game.PlayerId?) {
+    override fun onGameResult(winner: PlayerId?) {
         delegate.ready()
     }
 
