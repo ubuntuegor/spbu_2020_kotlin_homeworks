@@ -1,8 +1,8 @@
 @file:Suppress("NoWildcardImports", "WildcardImport")
+
 package homework6
 
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
@@ -22,7 +22,7 @@ import kotlin.system.measureTimeMillis
 object AppModel {
     private val MODE_DEFAULT = Mode.ByElements
 
-    private const val USE_COROUTINES_DEFAULT = false
+    private val EXECUTOR_DEFAULT = Executor.Thread
 
     private const val ELEMENT_COUNT_DEFAULT = 50_000
     private const val ELEMENT_COUNT_MIN = 1000
@@ -37,8 +37,17 @@ object AppModel {
         ByElements {
             override fun toString() = "By elements"
         },
-        ByCreatedThreads {
-            override fun toString() = "By created threads"
+        ByCreatedWorkers {
+            override fun toString() = "By created workers"
+        }
+    }
+
+    enum class Executor {
+        Thread {
+            override fun toString() = "Threads"
+        },
+        Coroutine {
+            override fun toString() = "Coroutines"
         }
     }
 
@@ -56,23 +65,23 @@ object AppModel {
     val selectedModeProperty = SimpleObjectProperty(MODE_DEFAULT)
     val selectedMode: Mode by selectedModeProperty
 
-    val useCoroutinesProperty = SimpleBooleanProperty(USE_COROUTINES_DEFAULT)
-    val useCoroutines by useCoroutinesProperty
+    val executorProperty = SimpleObjectProperty(EXECUTOR_DEFAULT)
+    val executor: Executor by executorProperty
 
     val elementCountParameter = IntegerRangedParameter(ELEMENT_COUNT_RANGE, ELEMENT_COUNT_DEFAULT)
     val elementCount by elementCountParameter.property
 
-    data class RecursionThreadsWrapper(val recursionLimit: Int) {
-        val threads: Int
+    data class RecursionWorkersWrapper(val recursionLimit: Int) {
+        val workers: Int
             get() = (2.0).pow(recursionLimit).toInt()
 
-        override fun toString() = threads.toString()
+        override fun toString() = workers.toString()
     }
 
-    val createdThreadsParameter = RangedParameter(
-        RECURSION_LIMIT_RANGE.map { RecursionThreadsWrapper(it) }, RecursionThreadsWrapper(RECURSION_LIMIT_DEFAULT)
+    val createdWorkersParameter = RangedParameter(
+        RECURSION_LIMIT_RANGE.map { RecursionWorkersWrapper(it) }, RecursionWorkersWrapper(RECURSION_LIMIT_DEFAULT)
     )
-    val createdThreads: RecursionThreadsWrapper by createdThreadsParameter.property
+    val createdWorkers: RecursionWorkersWrapper by createdWorkersParameter.property
 
     class Graph(val name: String) {
         val data = mutableMapOf<Number, Number>().asObservable()
@@ -85,8 +94,10 @@ object AppModel {
     }
 
     fun getSorter(recursionLimit: Int): Sorter<Int> =
-        if (useCoroutines) CoroutinesMergeSorter(recursionLimit)
-        else ThreadsMergeSorter(recursionLimit)
+        when (executor) {
+            Executor.Thread -> ThreadsMergeSorter(recursionLimit)
+            Executor.Coroutine -> CoroutinesMergeSorter(recursionLimit)
+        }
 }
 
 class MainView : View("Merge Sort Chart") {
@@ -113,7 +124,7 @@ class ChartView : View() {
     private val xAxisLabelProperty = AppModel.Chart.modeProperty.stringBinding {
         when (it) {
             AppModel.Mode.ByElements -> "Number of elements"
-            AppModel.Mode.ByCreatedThreads -> "Number of created threads"
+            AppModel.Mode.ByCreatedWorkers -> "Number of created workers"
             null -> null
         }
     }
@@ -154,8 +165,8 @@ class SettingsView : View() {
 
     private val disableElementCountProperty =
         model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByElements }
-    private val disableCreatedThreadsProperty =
-        model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByCreatedThreads }
+    private val disableCreatedWorkersProperty =
+        model.selectedModeProperty.booleanBinding { it == AppModel.Mode.ByCreatedWorkers }
 
     private val chartNotEmptyProperty = AppModel.Chart.modeProperty.booleanBinding { it != null }
     private val disableAddingGraphsProperty =
@@ -170,24 +181,27 @@ class SettingsView : View() {
                 vGrow = Priority.ALWAYS
             }
 
-            checkbox("Use coroutines", model.useCoroutinesProperty)
+            label("Executor:")
+            combobox(model.executorProperty, AppModel.Executor.values().toList())
 
             label("Number of elements:")
             combobox(model.elementCountParameter.property, model.elementCountParameter.range) {
                 disableProperty().bind(disableElementCountProperty)
             }
 
-            label("Number of created threads:")
-            combobox(model.createdThreadsParameter.property, model.createdThreadsParameter.range) {
-                disableProperty().bind(disableCreatedThreadsProperty)
+            label("Number of created workers:")
+            combobox(model.createdWorkersParameter.property, model.createdWorkersParameter.range) {
+                disableProperty().bind(disableCreatedWorkersProperty)
             }
-            text("Warning: too many created threads can\ncause various exceptions.") {
+            text("Warning: too many created workers can\ncause various exceptions.") {
                 fill = Color.GREY
             }
 
-            children.filterIsInstance<Label>().forEach {
-                it.apply {
-                    paddingTop = DEFAULT_PADDING
+            children.filterIsInstance<Label>().forEachIndexed { i, it ->
+                if (i != 0) {
+                    it.apply {
+                        paddingTop = DEFAULT_PADDING
+                    }
                 }
             }
             children.filterIsInstance<ComboBox<Any>>().forEach {
@@ -251,10 +265,10 @@ class ChartController : Controller() {
 
     private val elementsString: String
         get() = "${model.elementCount} elements"
-    private val threadsNameString: String
-        get() = if (model.useCoroutines) "coroutines" else "threads"
-    private val createdThreadsString: String
-        get() = "${model.createdThreads} $threadsNameString"
+    private val executorNameString: String
+        get() = model.executor.toString().toLowerCase()
+    private val createdWorkersString: String
+        get() = "${model.createdWorkers} $executorNameString"
 
     fun clear() {
         runLater { chart.mode = null }
@@ -264,10 +278,10 @@ class ChartController : Controller() {
     private fun createRandomList(size: Int) = List(size) { Random.nextInt() }
 
     private fun buildGraphByElements() {
-        val chartSeries = AppModel.Graph(createdThreadsString)
+        val chartSeries = AppModel.Graph(createdWorkersString)
         chart.graphs.add(chartSeries)
 
-        val sorter = model.getSorter(model.createdThreads.recursionLimit)
+        val sorter = model.getSorter(model.createdWorkers.recursionLimit)
         for (elementCount in model.elementCountParameter.range) {
             val list = createRandomList(elementCount as Int)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
@@ -275,15 +289,15 @@ class ChartController : Controller() {
         }
     }
 
-    private fun buildGraphByCreatedThreads() {
-        val chartSeries = AppModel.Graph("$elementsString, by $threadsNameString")
+    private fun buildGraphByCreatedWorkers() {
+        val chartSeries = AppModel.Graph("$elementsString, by $executorNameString")
         chart.graphs.add(chartSeries)
 
         val list = createRandomList(model.elementCount)
-        for (createdThreads in model.createdThreadsParameter.range) {
-            val sorter = model.getSorter(createdThreads.recursionLimit)
+        for (createdWorkers in model.createdWorkersParameter.range) {
+            val sorter = model.getSorter(createdWorkers.recursionLimit)
             val elapsedTime = measureTimeMillis { sorter.sort(list) }
-            chartSeries.data[createdThreads.threads] = elapsedTime
+            chartSeries.data[createdWorkers.workers] = elapsedTime
         }
     }
 
@@ -291,7 +305,7 @@ class ChartController : Controller() {
         runLater { AppModel.Chart.mode = model.selectedMode }
         when (model.selectedMode) {
             AppModel.Mode.ByElements -> buildGraphByElements()
-            AppModel.Mode.ByCreatedThreads -> buildGraphByCreatedThreads()
+            AppModel.Mode.ByCreatedWorkers -> buildGraphByCreatedWorkers()
         }
     }
 }
