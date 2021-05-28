@@ -68,7 +68,7 @@ class ConnectionController : Controller() {
     fun connect() {
         GlobalScope.launch {
             try {
-                client.ws("ws://localhost:8080/game") {
+                client.ws(SERVER_URI) {
                     state = State.IN_LOBBY
                     session = this
                     runLater { find<RoomSelectionView>().root.isDisable = false }
@@ -133,5 +133,9 @@ class ConnectionController : Controller() {
 
     fun disconnect() {
         GlobalScope.launch { session?.close() }
+    }
+
+    companion object {
+        private const val SERVER_URI = "ws://localhost:8080/game"
     }
 }
