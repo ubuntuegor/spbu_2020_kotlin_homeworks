@@ -19,6 +19,14 @@ class Styles : Stylesheet() {
 
         val window by cssclass()
         val menu by cssclass()
+
+        val errorFragment by cssclass()
+
+        val roomFragment by cssclass()
+
+        val roomWaitingView by cssclass()
+        val title by cssclass()
+
         val gameView by cssclass()
         val gameViewHeader by cssclass()
 
@@ -81,6 +89,34 @@ class Styles : Stylesheet() {
 
             label {
                 font = getFont(FontWeight.SEMI_BOLD, 14.0)
+            }
+        }
+
+        errorFragment {
+            padding = box(40.px)
+            spacing = 5.px
+
+            label {
+                font = getFont(FontWeight.NORMAL, 14.0)
+            }
+
+            title {
+                font = getFont(FontWeight.SEMI_BOLD, 18.0)
+            }
+        }
+
+        roomFragment {
+            padding = box(10.px)
+            borderWidth += box(1.px, 0.px)
+        }
+
+        roomWaitingView {
+            label {
+                font = getFont(FontWeight.NORMAL, 14.0)
+            }
+
+            title {
+                font = getFont(FontWeight.BOLD, 22.0)
             }
         }
 

@@ -5,10 +5,13 @@ import homework8.games.basic.Game
 import homework8.games.basic.Mark
 import homework8.games.basic.PlayerData
 import homework8.games.basic.PlayerId
+import homework8.players.Player
 
 abstract class LocalGame : Game() {
     override var turn = PlayerId.PLAYER_1
 
+    protected abstract val player1: Player
+    protected abstract val player2: Player
     override val player1Data = PlayerData(Mark.CROSS, "You")
     override val player2Data = PlayerData(Mark.NOUGHT, "Opponent")
 
@@ -54,5 +57,9 @@ abstract class LocalGame : Game() {
                 else -> turn.toPlayer().onMoveRequested()
             }
         }
+    }
+
+    override fun onQuit(playerId: PlayerId) {
+        playerId.other().toPlayer().onOpponentLeft()
     }
 }

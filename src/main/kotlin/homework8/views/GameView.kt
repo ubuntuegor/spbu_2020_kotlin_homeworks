@@ -126,6 +126,7 @@ class GameView : View("In game") {
                 alignment = Pos.BOTTOM_CENTER
                 button("Quit") {
                     action {
+                        controller.quit()
                         replaceWith(
                             find<MainMenuView>(FX.defaultScope),
                             ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds, ViewTransition.Direction.RIGHT)

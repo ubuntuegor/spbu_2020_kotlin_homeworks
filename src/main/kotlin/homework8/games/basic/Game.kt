@@ -1,7 +1,5 @@
 package homework8.games.basic
 
-import homework8.players.Player
-
 abstract class Game {
     inner class Delegate(val playerId: PlayerId) {
         val field
@@ -15,13 +13,12 @@ abstract class Game {
 
         fun ready() = onReady(playerId)
         fun makeMove(cell: Cell) = onMakeMove(playerId, cell)
+        fun quit() = onQuit(playerId)
     }
 
     protected val field = Field(SIZE)
     protected abstract var turn: PlayerId
 
-    protected abstract val player1: Player
-    protected abstract val player2: Player
     protected abstract val player1Data: PlayerData
     protected abstract val player2Data: PlayerData
 
@@ -31,8 +28,8 @@ abstract class Game {
     }
 
     protected abstract fun onReady(playerId: PlayerId)
-
     protected abstract fun onMakeMove(playerId: PlayerId, cell: Cell)
+    protected abstract fun onQuit(playerId: PlayerId)
 
     companion object {
         private const val SIZE = 3

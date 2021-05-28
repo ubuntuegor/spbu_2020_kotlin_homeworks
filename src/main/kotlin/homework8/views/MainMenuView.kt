@@ -40,6 +40,12 @@ class MainMenuView : View("Main menu") {
                 replaceWith<BotDifficultyView>(ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds))
             }
         }
+        button("Play online") {
+            useMaxWidth = true
+            action {
+                replaceWith<RoomSelectionView>(ViewTransition.Slide(Styles.TRANSITION_DURATION.seconds))
+            }
+        }
     }
 
     init {

@@ -111,4 +111,8 @@ class GameController : Controller() {
             delegate.makeMove(cell)
         }
     }
+
+    fun quit() {
+        delegate.quit()
+    }
 }
