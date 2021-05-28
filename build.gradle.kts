@@ -27,6 +27,7 @@ dependencies {
     implementation("com.charleskorn.kaml:kaml:0.28.3")
     implementation("com.squareup:kotlinpoet:1.6.0")
     implementation("no.tornado:tornadofx:1.7.20")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
     implementation("io.ktor:ktor-client-core:1.5.4")
     implementation("io.ktor:ktor-client-cio:1.5.4")
     implementation("io.ktor:ktor-client-serialization:1.5.4")
