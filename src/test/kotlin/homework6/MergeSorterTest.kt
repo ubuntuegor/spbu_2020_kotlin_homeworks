@@ -28,7 +28,7 @@ internal class MergeSorterTest {
     @MethodSource("sortData")
     @ParameterizedTest(name = "sort - {0} (recursion limit {2})")
     fun <T : Comparable<Any>> sort(expected: List<T>, unsorted: List<T>, recursionLimit: Int) {
-        val sorter = MergeSorter<T>(recursionLimit)
+        val sorter = ThreadsMergeSorter<T>(recursionLimit)
         assertEquals(expected, sorter.sort(unsorted))
     }
 

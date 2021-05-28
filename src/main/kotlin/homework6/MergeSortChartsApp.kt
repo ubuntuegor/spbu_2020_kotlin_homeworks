@@ -86,7 +86,7 @@ object AppModel {
 
     fun getSorter(recursionLimit: Int): Sorter<Int> =
         if (useCoroutines) CoroutinesMergeSorter(recursionLimit)
-        else MergeSorter(recursionLimit)
+        else ThreadsMergeSorter(recursionLimit)
 }
 
 class MainView : View("Merge Sort Chart") {
