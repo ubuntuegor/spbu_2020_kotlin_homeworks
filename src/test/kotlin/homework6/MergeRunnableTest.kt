@@ -31,7 +31,7 @@ internal class MergeRunnableTest {
     @MethodSource("mergeData")
     @ParameterizedTest(name = "run - {0} (recursion limit {3})")
     fun run(expected: List<Int>, list1: List<Int>, list2: List<Int>, recursionLimit: Int) {
-        val mergeRunnable = MergeRunnable(list1, list2, recursionLimit)
+        val mergeRunnable = MergeRunnable(ThreadExecutor(), list1, list2, recursionLimit)
         mergeRunnable.run()
         assertEquals(expected, mergeRunnable.result)
     }

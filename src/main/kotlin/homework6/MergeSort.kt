@@ -1,6 +1,45 @@
 package homework6
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
+interface ParallelExecutor {
+    interface Task {
+        fun join()
+    }
+
+    fun runInParallel(runnable: Runnable): Task
+}
+
+class ThreadExecutor : ParallelExecutor {
+    class Task(private val thread: Thread) : ParallelExecutor.Task {
+        override fun join() {
+            thread.join()
+        }
+    }
+
+    override fun runInParallel(runnable: Runnable): Task {
+        return Task(Thread(runnable).also { it.start() })
+    }
+}
+
+class CoroutineExecutor : ParallelExecutor {
+    class Task(private val job: Job) : ParallelExecutor.Task {
+        override fun join() {
+            runBlocking { job.join() }
+        }
+    }
+
+    override fun runInParallel(runnable: Runnable): Task {
+        return Task(GlobalScope.launch(Dispatchers.Unconfined) { runnable.run() })
+    }
+}
+
 class MergeRunnable<T : Comparable<T>>(
+    private val executor: ParallelExecutor,
     private val list1: List<T>,
     private val list2: List<T>,
     private val recursionLimit: Int
@@ -23,20 +62,21 @@ class MergeRunnable<T : Comparable<T>>(
             val rightListSplit = searchSplitPosition(rightList, leftList[leftListSplit])
 
             val leftHalvesRunnable = MergeRunnable(
+                executor,
                 leftList.subList(0, leftListSplit),
                 rightList.subList(0, rightListSplit),
                 recursionLimit - 1
             )
             val rightHalvesRunnable = MergeRunnable(
+                executor,
                 leftList.subList(leftListSplit + 1, leftList.size),
                 rightList.subList(rightListSplit, rightList.size),
                 recursionLimit - 1
             )
 
-            val leftHalvesThread = Thread(leftHalvesRunnable)
-            leftHalvesThread.start()
+            val leftHalvesTask = executor.runInParallel(leftHalvesRunnable)
             rightHalvesRunnable.run()
-            leftHalvesThread.join()
+            leftHalvesTask.join()
 
             result.addAll(leftHalvesRunnable.result)
             result.add(leftList[leftListSplit])
@@ -68,6 +108,7 @@ class MergeRunnable<T : Comparable<T>>(
 }
 
 class MergeSortRunnable<T : Comparable<T>>(
+    private val executor: ParallelExecutor,
     private val list: List<T>,
     private val recursionLimit: Int
 ) : Runnable {
@@ -77,20 +118,20 @@ class MergeSortRunnable<T : Comparable<T>>(
     private fun mergeSort(): List<T> {
         if (list.size <= 1) return list
         val mid = list.size / 2
-        val leftHalfRunnable = MergeSortRunnable(list.subList(0, mid), recursionLimit - 1)
-        val rightHalfRunnable = MergeSortRunnable(list.subList(mid, list.size), recursionLimit - 1)
+        val leftHalfRunnable = MergeSortRunnable(executor, list.subList(0, mid), recursionLimit - 1)
+        val rightHalfRunnable = MergeSortRunnable(executor, list.subList(mid, list.size), recursionLimit - 1)
 
         if (recursionLimit > 0) {
-            val leftHalfThread = Thread(leftHalfRunnable)
-            leftHalfThread.start()
+            val leftHalfTask = executor.runInParallel(leftHalfRunnable)
             rightHalfRunnable.run()
-            leftHalfThread.join()
+            leftHalfTask.join()
         } else {
             leftHalfRunnable.run()
             rightHalfRunnable.run()
         }
 
         return MergeRunnable(
+            executor,
             leftHalfRunnable.result,
             rightHalfRunnable.result,
             recursionLimit
@@ -102,7 +143,12 @@ class MergeSortRunnable<T : Comparable<T>>(
     }
 }
 
-class MergeSorter<T : Comparable<T>>(private val recursionLimit: Int) {
-    fun sort(list: List<T>) =
-        MergeSortRunnable(list, recursionLimit).also { it.run() }.result
+class ThreadsMergeSorter<T : Comparable<T>>(private val recursionLimit: Int) : Sorter<T> {
+    override fun sort(list: List<T>) =
+        MergeSortRunnable(ThreadExecutor(), list, recursionLimit).also { it.run() }.result
+}
+
+class CoroutinesMergeSorter<T : Comparable<T>>(private val recursionLimit: Int) : Sorter<T> {
+    override fun sort(list: List<T>) =
+        MergeSortRunnable(CoroutineExecutor(), list, recursionLimit).also { it.run() }.result
 }
