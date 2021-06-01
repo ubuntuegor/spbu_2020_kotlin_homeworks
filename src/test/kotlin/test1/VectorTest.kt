@@ -28,6 +28,15 @@ internal class VectorTest {
                     difference = Vector.fromInts(32, 32, -14),
                     scalar = ArithmeticInt(-57)
                 )
+            ),
+            Arguments.of(
+                VectorData(
+                    vector1 = Vector.fromInts(0, 23, -12, -32, 23),
+                    vector2 = Vector.fromInts(-17, 15, 1, 21, 0),
+                    sum = Vector.fromInts(-17, 38, -11, -11, 23),
+                    difference = Vector.fromInts(17, 8, -13, -53, 23),
+                    scalar = ArithmeticInt(-339)
+                )
             )
         )
 
