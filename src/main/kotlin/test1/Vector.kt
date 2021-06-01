@@ -1,8 +1,10 @@
 package test1
 
-class Vector<T : ArithmeticAvailable<T>>(val list: List<T>) {
+class Vector<T : ArithmeticAvailable<T>>(private val list: List<T>) {
     val size: Int
         get() = list.size
+
+    operator fun get(index: Int) = list[index]
 
     private fun checkCompatibility(other: Vector<T>) =
         require(other.size == size) { "Cannot operate on vectors of size $size and ${other.size}" }
