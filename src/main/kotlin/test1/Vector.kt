@@ -1,6 +1,6 @@
 package test1
 
-class Vector<T : ArithmeticAvailable<T>>(private val list: List<T>) {
+data class Vector<T : ArithmeticAvailable<T>>(private val list: List<T>) {
     val size: Int
         get() = list.size
 
@@ -26,6 +26,10 @@ class Vector<T : ArithmeticAvailable<T>>(private val list: List<T>) {
     }
 
     fun isNull() = list.all { it.isZero() }
+
+    companion object {
+        fun fromInts(vararg values: Int) = Vector(values.map { ArithmeticInt(it) })
+    }
 }
 
 interface ArithmeticAvailable<T : ArithmeticAvailable<T>> {
@@ -35,9 +39,9 @@ interface ArithmeticAvailable<T : ArithmeticAvailable<T>> {
     fun isZero(): Boolean
 }
 
-class ArithmeticInt(private val actual: Int) : ArithmeticAvailable<ArithmeticInt> {
+data class ArithmeticInt(private val actual: Int) : ArithmeticAvailable<ArithmeticInt> {
     override fun plus(other: ArithmeticInt) = ArithmeticInt(actual + other.actual)
     override fun minus(other: ArithmeticInt) = ArithmeticInt(actual - other.actual)
     override fun times(other: ArithmeticInt) = ArithmeticInt(actual * other.actual)
-    override fun isZero() = this.equals(0)
+    override fun isZero() = actual == 0
 }
